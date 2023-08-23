@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: main.py
+      FLASK_ENV: development
+    volumes:
+      - .:/app 
+    depends_on:
+      - mysql-db
+    networks:
+      - my-network
+
+  mysql-db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: files_data
+      MYSQL_USER: talha
+      MYSQL_PASSWORD: nopasswordatall
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/:ro
+    ports:
+      - "3308:3308"
+    networks:
+      - my-network
+
+networks:
+  my-network:
