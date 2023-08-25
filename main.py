@@ -1,10 +1,10 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 
 from flask_mysqldb import MySQL
 from nextcloud import NextCloud
 app = Flask(__name__)
 
-nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=NEXTCLOUD_USERNAME, password=NEXTCLOUD_PASSWORD, json_output=to_js)
+nxc = None
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
@@ -28,6 +28,27 @@ def fetch_data():
         return "Database connection successful!"
     except Exception as e:
         return f"Database connection failed: {str(e)}"
+
+@app.route('/login',methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    global nxc
+    nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
+    # return {'status': 'success'}
+    return 'done'
+
+@app.route('/upload_file',methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return "No file part"
+    file = request.files['file']
+    check = nxc.upload_file('requirements.txt', '/local/requirements.txt').data
+    if check:
+        return True
+    else:
+        return False 
 
 
 if __name__ == "__main__":
