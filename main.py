@@ -8,7 +8,6 @@ import os
 
 app = Flask(__name__)
 
-nxc = None
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
@@ -29,6 +28,21 @@ def scanner(filename):
         return response["results"]["response_code"] == 0 or response["results"]["positives"] == 0
     return False
 
+def insert_locked_file(username,filename):
+    cur = mysql.connection.cursor()
+    insert_query = "INSERT INTO locked_files (username, file_name, file_url) VALUES (%s, %s, %s)"
+    data = (username, filename, '/local/'+filename)
+    cur.execute(insert_query, data)
+    mysql.connection.commit()
+    cur.close()
+
+def delete_locked_file(username,filename):
+    cur = mysql.connection.cursor()
+    delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s"
+    data = (username, filename)
+    cur.execute(delete_query, data)
+    mysql.connection.commit()
+    cur.close()
 
 @app.route("/get_data")
 def fetch_data():
@@ -45,7 +59,7 @@ def get_files_name():
     username = request.form.get('username')
     password = request.form.get('password')
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
-    root = nxc.get_folder('/local/')  # get root
+    root = nxc.get_folder('/local/')
     def _list_rec(d, indent=""):
         formatted_string = "%s%s" % (d.basename(), '/' if d.isdir() else '')
         if '/' not in formatted_string:
@@ -90,6 +104,7 @@ def get_file():
     file = nxc.get_file('/local/'+filename)
     file.fetch_file_content()
     file.download()
+    insert_locked_file(username,filename)
     if scanner(filename):
         response = send_file(filename, as_attachment=True)
         os.remove(filename)

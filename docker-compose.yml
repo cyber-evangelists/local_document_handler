@@ -20,7 +20,7 @@ services:
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: files_data
+      MYSQL_DATABASE: file_data
       MYSQL_USER: talha
       MYSQL_PASSWORD: nopasswordatall
     volumes:
