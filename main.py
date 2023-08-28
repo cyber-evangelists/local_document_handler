@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 
 from flask_mysqldb import MySQL
 from nextcloud import NextCloud
+import os
+
 app = Flask(__name__)
 
 nxc = None
@@ -29,26 +31,54 @@ def fetch_data():
     except Exception as e:
         return f"Database connection failed: {str(e)}"
 
-@app.route('/login',methods=['POST'])
-def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    global nxc
+@app.route('/getfiles',methods=['POST'])
+def get_files_name():
+    file_name = []
+    username = request.form.get('username')
+    password = request.form.get('password')
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
-    # return {'status': 'success'}
-    return 'done'
+    root = nxc.get_folder('/local/')  # get root
+    def _list_rec(d, indent=""):
+        formatted_string = "%s%s" % (d.basename(), '/' if d.isdir() else '')
+        if '/' not in formatted_string:
+            file_name.append(formatted_string)
+        print("%s%s%s" % (indent, d.basename(), '/' if d.isdir() else ''))
+        if d.isdir():
+            for i in d.list():
+                _list_rec(i, indent=indent+"  ")
+
+    _list_rec(root)
+    return file_name
 
 @app.route('/upload_file',methods=['POST'])
 def upload_file():
+    username = request.form.get('username')
+    password = request.form.get('password')
     if 'file' not in request.files:
         return "No file part"
+    nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     file = request.files['file']
-    check = nxc.upload_file('requirements.txt', '/local/requirements.txt').data
-    if check:
-        return True
+    file.save(file.filename)
+    check = nxc.upload_file(file.filename, '/local/'+file.filename).data
+    if check=='':
+        os.remove(file.filename)
+        return 'file uploaded successfully'
     else:
-        return False 
+        os.remove(file.filename)
+        return 'error while uploading file' 
+
+@app.route('/get_file',methods=['GET'])
+def get_file():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    filename = request.form.get('filename')
+    nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
+    file = nxc.get_file('/local/'+filename)
+    file.fetch_file_content()
+    file.download()
+    response = send_file(filename, as_attachment=True)
+    os.remove(filename)
+    return response
 
 
 if __name__ == "__main__":
