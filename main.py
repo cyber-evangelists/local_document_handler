@@ -51,7 +51,6 @@ def check_record_exists(file_name):
     cur.execute(query, data)
     result = cur.fetchone()
     cur.close()
-    print(type(result))
     if result:
         return True
     else:
@@ -110,7 +109,7 @@ def upload_file():
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     file = request.files['file']
     file.save(file.filename)
-    if check_record_exists(username,file.filename):
+    if check_record_exists(file.filename):
         delete_locked_file(username,file.filename)
     if scanner(file.filename):
         check = nxc.upload_file(file.filename, '/'+file.filename).data
