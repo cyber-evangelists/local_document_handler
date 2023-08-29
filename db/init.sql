@@ -1,4 +1,4 @@
-CREATE DATABASE file_data;
+-- CREATE DATABASE file_data;
 
 -- Switch to the created database
 USE file_data;
