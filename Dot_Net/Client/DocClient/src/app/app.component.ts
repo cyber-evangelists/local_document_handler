@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { DocumentServiceService } from './document-service.service';
 import { Router } from '@angular/router';
+import { ApiService } from './api.service';
 
 
 @Component({
@@ -14,10 +15,11 @@ export class AppComponent {
   documents: any[] = [];
 
   constructor(private documentService: DocumentServiceService,
+    private apiService :ApiService,
     private router: Router) { }
 
   ngOnInit(): void {
-    this.documentService.getDocuments().subscribe(
+    this.apiService.getFiles().subscribe(
       (data) => {
         this.documents = data;
         console.log(this.documents);
@@ -32,18 +34,18 @@ export class AppComponent {
     this.router.navigate(['/upload']);
   }
 
-  Download(docId: number,docName:string)
+  Download(docName:string)
   {
-    this.documentService.downloadDocument(docId).subscribe((response: ArrayBuffer) => {
+    this.apiService.getFile(docName).subscribe((response: any) => {
       console.log(response);
-      this.saveFile(response, docName); // Adjust file name and extension as needed
+      //this.saveFile(response, docName); // Adjust file name and extension as needed
     },
    (error)=> {
     console.error('Error Downloading:', error);
 }    
     );}
 
-private saveFile(data: ArrayBuffer, fileName: string) {
+private saveFile(data: any, fileName: string) {
   const blob = new Blob([data], { type: 'application/octet-stream' });
   const url = window.URL.createObjectURL(blob);
 

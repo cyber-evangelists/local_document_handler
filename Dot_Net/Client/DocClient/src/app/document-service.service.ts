@@ -19,18 +19,6 @@ export class DocumentServiceService {
     return this.http.post<void>(`${this.baseUrl}/saveDocument`, { documentPath });
   }
 
-  ActiveService(docId: number): Observable<string> {
-    const apiUrl = this.baseUrl + `/ActiveService/${docId}`;
-
-    return this.http.get<string>(apiUrl).pipe(
-      catchError(error => {
-        console.error('API call error:', error);
-        return throwError(error);
-      })
-    );
-  }
-
-
   downloadDocument(docId: number) {
     const apiUrl = `${this.baseUrl}/DownloadDocument`;
     return this.http.get(apiUrl+`?DocId=${docId}`, { responseType: 'arraybuffer' });
