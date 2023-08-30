@@ -3,11 +3,18 @@ from flask import Flask, request, jsonify, send_file
 from flask_mysqldb import MySQL
 from nextcloud import NextCloud
 from virus_total_apis import PublicApi
+from flask_cors import CORS
 import hashlib
 import os
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Allow requests from specific addresses
+specific_origins = [
+    "http://localhost:4200",  # Add more addresses as needed
+]
+CORS(app, resources={r"/*": {"origins": specific_origins}})
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
@@ -82,8 +89,14 @@ def fetch_data():
 @app.route('/getfiles',methods=['POST'])
 def get_files_name():
     file_name = []
-    username = request.form.get('username')
-    password = request.form.get('password')
+    # username = request.form.get('username')
+    # password = request.form.get('password')
+    json_data = request.json
+    username = json_data.get('username')
+    password = json_data.get('password')
+    if username is None or password is None:
+        return 'username or password is missing'
+    print(username,password)
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     root = nxc.get_folder()
     def _list_rec(d, indent=""):
