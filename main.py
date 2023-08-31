@@ -3,16 +3,23 @@ from flask import Flask, request, jsonify, send_file
 from flask_mysqldb import MySQL
 from nextcloud import NextCloud
 from virus_total_apis import PublicApi
+from flask_cors import CORS
 import hashlib
 import os
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Allow requests from specific addresses
+specific_origins = [
+    "http://localhost:4200",  # Add more addresses as needed
+]
+CORS(app, resources={r"/*": {"origins": specific_origins}})
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = "example"
-app.config["MYSQL_DB"] = "files_data"
+app.config["MYSQL_DB"] = "file_data"
 
 mysql = MySQL(app)
 
@@ -31,7 +38,7 @@ def scanner(filename):
 def insert_locked_file(username,filename):
     cur = mysql.connection.cursor()
     insert_query = "INSERT INTO locked_files (username, file_name, file_url) VALUES (%s, %s, %s)"
-    data = (username, filename, '/local/'+filename)
+    data = (username, filename, '/'+filename)
     cur.execute(insert_query, data)
     mysql.connection.commit()
     cur.close()
@@ -43,6 +50,32 @@ def delete_locked_file(username,filename):
     cur.execute(delete_query, data)
     mysql.connection.commit()
     cur.close()
+
+def check_record_exists(file_name):
+    cur = mysql.connection.cursor()
+    query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s"
+    data = (file_name, '/'+file_name)
+    cur.execute(query, data)
+    result = cur.fetchone()
+    cur.close()
+    if result:
+        return True
+    else:
+        return False
+
+
+def check_same_user(username,file_name):
+    cur = mysql.connection.cursor()
+    query = "SELECT username FROM locked_files WHERE file_name = %s AND file_url = %s"
+    data = (file_name, '/'+file_name)
+    cur.execute(query, data)
+    result = cur.fetchone()
+    cur.close()
+    if result[0]==username:
+        return True
+    else:
+        return False
+    
 
 @app.route("/get_data")
 def fetch_data():
@@ -56,10 +89,16 @@ def fetch_data():
 @app.route('/getfiles',methods=['POST'])
 def get_files_name():
     file_name = []
-    username = request.form.get('username')
-    password = request.form.get('password')
+    # username = request.form.get('username')
+    # password = request.form.get('password')
+    json_data = request.json
+    username = json_data.get('username')
+    password = json_data.get('password')
+    if username is None or password is None:
+        return 'username or password is missing'
+    print(username,password)
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
-    root = nxc.get_folder('/local/')
+    root = nxc.get_folder()
     def _list_rec(d, indent=""):
         formatted_string = "%s%s" % (d.basename(), '/' if d.isdir() else '')
         if '/' not in formatted_string:
@@ -83,8 +122,10 @@ def upload_file():
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     file = request.files['file']
     file.save(file.filename)
+    if check_record_exists(file.filename):
+        delete_locked_file(username,file.filename)
     if scanner(file.filename):
-        check = nxc.upload_file(file.filename, '/local/'+file.filename).data
+        check = nxc.upload_file(file.filename, '/'+file.filename).data
         os.remove(file.filename)
         if check=='':
             return 'file uploaded successfully'
@@ -101,17 +142,33 @@ def get_file():
     password = request.form.get('password')
     filename = request.form.get('filename')
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
-    file = nxc.get_file('/local/'+filename)
-    file.fetch_file_content()
-    file.download()
-    insert_locked_file(username,filename)
-    if scanner(filename):
-        response = send_file(filename, as_attachment=True)
-        os.remove(filename)
-        return response
+    file = nxc.get_file(filename)
+    if file is not None:
+        file.fetch_file_content()
+        file.download()
+        if not check_record_exists(filename):
+            insert_locked_file(username,filename)
+            if scanner(filename):
+                response = send_file(filename, as_attachment=True)
+                os.remove(filename)
+                return response
+            else:
+                os.remove(filename)
+                return 'file has virus'
+        elif check_same_user(username,filename):
+            if scanner(filename):
+                response = send_file(filename, as_attachment=True)
+                os.remove(filename)
+                return response
+            else:
+                os.remove(filename)
+                return 'file has virus'
+        else:
+            os.remove(filename)
+            return 'file already in editing process by another user'
+        
     else:
-        os.remove(filename)
-        return 'file has virus'
+        return 'file not exist or user have not access'
 
 
 if __name__ == "__main__":

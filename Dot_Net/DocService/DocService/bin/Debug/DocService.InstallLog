@@ -138,3 +138,18 @@ Affected parameters are:
    assemblypath = C:\Users\awais\OneDrive\Desktop\DMS Project Docs\DocService\DocService\bin\Debug\DocService.exe
    logfile = C:\Users\awais\OneDrive\Desktop\DMS Project Docs\DocService\DocService\bin\Debug\DocService.InstallLog
 Restoring event log to previous state for source DocumentEditService.
+Installing assembly 'E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.exe'.
+Affected parameters are:
+   i = 
+   logfile = E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.InstallLog
+   assemblypath = E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.exe
+   logtoconsole = 
+Installing service DocumentEditService...
+Service DocumentEditService has been successfully installed.
+Creating EventLog source DocumentEditService in log Application...
+Committing assembly 'E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.exe'.
+Affected parameters are:
+   i = 
+   logfile = E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.InstallLog
+   assemblypath = E:\local_document_handler\Dot_Net\DocService\DocService\bin\Debug\DocService.exe
+   logtoconsole = 

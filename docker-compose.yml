@@ -21,7 +21,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: file_data
-      MYSQL_USER: talha
+      MYSQL_USER: root1
       MYSQL_PASSWORD: nopasswordatall
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
