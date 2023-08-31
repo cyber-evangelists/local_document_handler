@@ -8,13 +8,6 @@ import hashlib
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-# Allow requests from specific addresses
-specific_origins = [
-    "http://localhost:4200",  # Add more addresses as needed
-]
-CORS(app, resources={r"/*": {"origins": specific_origins}})
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
@@ -22,6 +15,7 @@ app.config["MYSQL_PASSWORD"] = "example"
 app.config["MYSQL_DB"] = "file_data"
 
 mysql = MySQL(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 def scanner(filename):
     API_KEY = '88858f77a2c07a9d4e9b6b730ea378d1d2c02e3c9e3e9ff885cb1e50da23014b'
