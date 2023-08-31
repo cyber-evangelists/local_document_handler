@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://a414-223-123-5-118.ngrok-free.app'; // Update with your API URL
+  private baseUrl = 'http://localhost:5000'; // Update with your API URL
 
   constructor(private http: HttpClient) {}
 
@@ -34,18 +34,20 @@ export class ApiService {
 
   getFile(filename: string): Observable<any> {
     const headers = new HttpHeaders({
-      'username': 'admin',
-      'password': 'admin',
-      'filename': filename
+      'Content-Type': 'application/json',
     });
 
     const body = {
       username: 'admin',
       password: 'admin',
-      filename: filename
+      filename: filename,
     };
-  
-    return this.http.get(`${this.baseUrl}/get_file`,{ headers});
+    const options = {
+      headers,
+      responseType: 'blob' as 'json',
+    };
+
+    return this.http.post(`${this.baseUrl}/get_file`, body, options);
   }
 
   getFiles(): Observable<any> {

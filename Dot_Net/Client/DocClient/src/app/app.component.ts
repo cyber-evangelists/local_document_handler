@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { DocumentServiceService } from './document-service.service';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
-
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-root',
@@ -38,7 +38,7 @@ export class AppComponent {
   {
     this.apiService.getFile(docName).subscribe((response: any) => {
       console.log(response);
-      //this.saveFile(response, docName); // Adjust file name and extension as needed
+      this.saveFile(response, docName); // Adjust file name and extension as needed
     },
    (error)=> {
     console.error('Error Downloading:', error);

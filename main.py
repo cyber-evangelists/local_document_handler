@@ -130,11 +130,17 @@ def upload_file():
         return 'error while uploading file or file has virus' 
 
 
-@app.route('/get_file',methods=['GET'])
+@app.route('/get_file',methods=['POST'])
 def get_file():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    filename = request.form.get('filename')
+    # username = request.form.get('username')
+    # password = request.form.get('password')
+    # filename = request.form.get('Filename')
+    json_data = request.json
+    username = json_data.get('username')
+    password = json_data.get('password')
+    filename = json_data.get('filename')
+    if filename is None or username is None or password is None:
+        return 'filename or username or password is missing' 
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     file = nxc.get_file(filename)
     if file is not None:
