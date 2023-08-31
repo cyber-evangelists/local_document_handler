@@ -344,17 +344,15 @@
     <table class="document-table table table-bordered">
       <thead>
         <tr>
-          <th>Document Name</th>
-          <th>Document Path</th>
+          <th>Document</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let document of documents">
-          <td>{{ document.name }}</td>
-          <td>{{ document.path }}</td>
+          <td>{{ document }}</td>
           <td>
-            <button type="button" class="btn btn-success" (click)="Download(document.id,document.name)">Download</button>
+            <button type="button" class="btn btn-success" (click)="Download(document)">Download</button>
           </td>
         </tr>
       </tbody>
