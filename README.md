@@ -1,9 +1,10 @@
-# local_document_handler
+# Local Document Handler
 
 
 ## Next cloud configration:
 
 install (docker)[https://www.docker.com] and compose in windows
+
 open cmd terminal
 run command ```docker run -d -p 8080:80 nextcloud```
 hit URL in your Browser ```http://localhost:8080/```
