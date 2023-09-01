@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { DocumentServiceService } from './document-service.service';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
-import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-root',

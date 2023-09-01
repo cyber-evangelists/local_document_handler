@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net.Http;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -15,11 +16,11 @@ namespace DocService
     [RunInstaller(true)]
     public partial class DocEditingService : ServiceBase
     {
+        private readonly HttpClient _httpClient = new HttpClient();
+
         private string DownloadFolderPath = string.Empty;
         private string DownloadedFileName = string.Empty;
         private string DomnainAndUserName = string.Empty;
-
-        private readonly string _databaseConnectionString = "Data Source=localhost;Initial Catalog=DMS;Integrated Security=True;TrustServerCertificate=True";
 
         private FileSystemWatcher _fileWatcher;
 
@@ -33,6 +34,8 @@ namespace DocService
         {
             try
             {
+                LogMessage("Proccess Start Sccuessfully", EventLogEntryType.Error);
+
                 GetDownloadAndUserName();
 
                 _fileWatcher = new FileSystemWatcher(DownloadFolderPath);
@@ -55,7 +58,6 @@ namespace DocService
             {
                 if (!string.IsNullOrEmpty(DownloadedFileName))
                 {
-                    int docId = GetDocumentIdByName(DownloadedFileName);
                     string fullPath = string.Empty;
 
                     try
@@ -69,8 +71,8 @@ namespace DocService
                             {
                                 CreateHighPriorityTask(fullPath);
                                 WaitForDocumentClose(fullPath);
-                                SaveDocument(fullPath, docId);
-
+                                SaveDocument(fullPath, DownloadedFileName);
+                                LogMessage("File Edit Sccuessfully", EventLogEntryType.Error);
                             }
 
                             catch (Exception ex)
@@ -202,6 +204,8 @@ namespace DocService
         {
             try
             {
+                LogMessage("Wait Doc Proccess Start Sccuessfully", EventLogEntryType.Error);
+
                 _fileWatcher = new FileSystemWatcher(Path.GetDirectoryName(documentPath));
                 _fileWatcher.Filter = Path.GetFileName(documentPath);
                 _fileWatcher.EnableRaisingEvents = true;
@@ -213,7 +217,7 @@ namespace DocService
                     Thread.Sleep(1000);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogMessage($"Error: {ex.ToString()}", EventLogEntryType.Error);
 
@@ -232,7 +236,7 @@ namespace DocService
 
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogMessage($"Something Went Wrong {ex.Message}.", EventLogEntryType.Error);
 
@@ -242,61 +246,45 @@ namespace DocService
         #endregion
 
         #region SQL Queries
-        private void SaveDocument(string documentPath, int docId)
-        {
-            if (File.Exists(documentPath))
-            {
-                byte[] documentData = File.ReadAllBytes(documentPath);
-
-                using (var connection = new SqlConnection(_databaseConnectionString))
-                {
-                    connection.Open();
-
-                    using (var cmd = new SqlCommand("UPDATE Documents SET Data = @DocumentData WHERE Id = @docId", connection))
-                    {
-                        cmd.Parameters.AddWithValue("@DocumentData", documentData);
-                        cmd.Parameters.AddWithValue("@docId", docId);
-                        cmd.ExecuteNonQuery();
-                        connection.Close();
-                    }
-                }
-            }
-        }
-
-        private int GetDocumentIdByName(string name)
+        private async void SaveDocument(string documentPath, string fileName)
         {
             try
             {
-                int Id = 0;
-                using (var connection = new SqlConnection(_databaseConnectionString))
+                LogMessage("Save Process started", EventLogEntryType.Error);
+
+                if (File.Exists(documentPath))
                 {
-                    connection.Open();
+                    LogMessage("API Process started", EventLogEntryType.Error);
 
-                    name = RemoveRepeatNumbers(name);
-
-                    using (var cmd = new SqlCommand("SELECT Id FROM Documents WHERE Name Like '%' + @DocumentName + '%'", connection))
+                    using (var formData = new MultipartFormDataContent())
                     {
-                        cmd.Parameters.AddWithValue("@DocumentName", name);
-                        var value = cmd.ExecuteScalar()?.ToString();
-                        Id = Convert.ToInt32(value);
-
-                        if (Id > 0)
+                        using (FileStream fileStream = new FileStream(documentPath, FileMode.Open))
                         {
-                            connection.Close();
-                            return Id;
+                            formData.Add(new StreamContent(fileStream), "file", Path.GetFileName(documentPath));
+                            formData.Add(new StringContent("admin"), "username");
+                            formData.Add(new StringContent("admin"), "password");
 
+                            HttpResponseMessage response = await _httpClient.PostAsync(BaseURL.UploadFile, formData);
+                            string responseBody = await response.Content.ReadAsStringAsync();
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                LogMessage(responseBody, EventLogEntryType.Error);
+
+                            }
+                            else
+                            {
+                                LogMessage(responseBody, EventLogEntryType.Error);
+
+                            }
                         }
                     }
                 }
-
-                LogMessage($"Document with this ID {Id} not found.", EventLogEntryType.Error);
-                return 0;
+                LogMessage("File Not found", EventLogEntryType.Error);
             }
             catch (Exception ex)
             {
-                LogMessage($"Error downloading document with Name {name}: {ex.ToString()}", EventLogEntryType.Error);
-                return 0;
-
+                LogMessage(ex.Message, EventLogEntryType.Error);
             }
         }
 
@@ -318,7 +306,7 @@ namespace DocService
 
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogMessage(ex.Message, EventLogEntryType.Error);
 
