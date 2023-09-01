@@ -3,7 +3,7 @@
 
 ## Next cloud configration:
 
-install (docker)[https://www.docker.com] and compose in windows
+install [Docker](https://www.docker.com) and compose in windows
 
 open cmd terminal
 
