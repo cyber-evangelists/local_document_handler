@@ -3,7 +3,7 @@
 
 ## Next cloud configration:
 
-install (docker)[https://www.docker.com] in windows
+install (docker)[https://www.docker.com] and compose in windows
 open cmd terminal
 run command ```docker run -d -p 8080:80 nextcloud```
 hit URL in your Browser ```http://localhost:8080/```
@@ -22,3 +22,8 @@ restart your container if required.
 ## Flask server configration
 
 
+after cloning the repo, go to the flask folder.
+open cmd in that folder by typing ```cmd``` in address bar.
+run command ```docker compose up```
+
+now configure the .NET service by reading README file in that folder.
