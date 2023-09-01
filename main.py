@@ -37,6 +37,34 @@ def insert_locked_file(username,filename):
     mysql.connection.commit()
     cur.close()
 
+def save_logs_in_db(username,machine,descriptoion,filename):
+    cur = mysql.connection.cursor()
+    insert_query = "INSERT INTO Logging (Description, UserName, Machine,Filename) VALUES (%s, %s, %s, %s)"
+    data = (descriptoion, username, machine, filename)
+    cur.execute(insert_query, data)
+    mysql.connection.commit()
+    cur.close()
+
+def get_logs_from_db(username,machine,filename):
+    cur = mysql.connection.cursor()
+    select_query = """
+            SELECT Description
+            FROM Logging
+            WHERE UserName = %s
+              AND Machine = %s
+              AND filename = %s
+            ORDER BY created_at DESC
+            LIMIT 1;
+        """
+    data = (username, machine, filename)
+    cur.execute(select_query, data)
+    result = cur.fetchone()
+    cur.close()
+    if result:
+        return result[0]
+    else:
+        return None
+
 def delete_locked_file(username,filename):
     cur = mysql.connection.cursor()
     delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s"
@@ -83,8 +111,6 @@ def fetch_data():
 @app.route('/getfiles',methods=['POST'])
 def get_files_name():
     file_name = []
-    # username = request.form.get('username')
-    # password = request.form.get('password')
     json_data = request.json
     username = json_data.get('username')
     password = json_data.get('password')
@@ -132,9 +158,6 @@ def upload_file():
 
 @app.route('/get_file',methods=['POST'])
 def get_file():
-    # username = request.form.get('username')
-    # password = request.form.get('password')
-    # filename = request.form.get('Filename')
     json_data = request.json
     username = json_data.get('username')
     password = json_data.get('password')
@@ -170,6 +193,48 @@ def get_file():
     else:
         return 'file not exist or user have not access'
 
+
+@app.route('/login',methods=['POST'])
+def login():
+    json_data = request.json
+    username = json_data.get('username')
+    password = json_data.get('password')
+    if username is None or password is None:
+        return 'username or password or machine is missing or ip is missing'
+    nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
+    check = nxc.upload_file('checklogin.txt', '/flask/checklogin.txt').data
+    if check=='':
+        return 'login sucessfull',200
+    else:
+        return 'login failed',401
+    
+
+@app.route('/save-logs',methods=['POST'])
+def save_logs():
+    json_data = request.json
+    username = json_data.get('username')
+    description = json_data.get('Description')
+    machine = json_data.get('Machine')
+    filename = json_data.get('filename')
+    if username is None or description is None or machine is None:
+        return 'username or description or machine is missing'
+    save_logs_in_db(username,machine,description,filename)
+    return 'logs saved successfully',200
+
+@app.route('/get-logs',methods=['POST'])
+def get_logs():
+    json_data = request.json
+    username = json_data.get('username')
+    machine = json_data.get('Machine')
+    filename = json_data.get('filename')
+    if username is None or machine is None or filename is None:
+        return 'username or machine is missing or filename is missing'
+    logs = get_logs_from_db(username,machine,filename)
+    if logs is not None:
+        return logs,200
+    else:
+        return 'no logs found',404
+    
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

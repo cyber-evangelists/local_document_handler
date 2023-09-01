@@ -16,3 +16,12 @@ CREATE TABLE locked_files (
     file_name VARCHAR(255),
     file_url VARCHAR(255)
 )
+
+CREATE TABLE Logging (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Description VARCHAR(255),
+    UserName VARCHAR(50),
+    Machine VARCHAR(50),
+    Filename VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
