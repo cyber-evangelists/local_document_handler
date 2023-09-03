@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://beed-223-123-13-51.ngrok-free.app'; // Update with your API URL
+  private baseUrl = 'https://b334-223-123-4-243.ngrok-free.app'; // Update with your API URL
 
   constructor(private http: HttpClient) {}
 

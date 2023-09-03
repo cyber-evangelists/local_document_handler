@@ -69,8 +69,12 @@ namespace DocService
                         {
                             try
                             {
-                                CreateHighPriorityTask(fullPath);
-                                WaitForDocumentClose(fullPath);
+                                int isProcessStart = CreateHighPriorityTask(fullPath);
+                                if (isProcessStart != 0)
+                                {
+                                    Thread.Sleep(10000);
+                                    WaitForDocumentClose(fullPath, isProcessStart);
+                                }
                                 SaveDocument(fullPath, DownloadedFileName);
                                 LogMessage("File Edit Sccuessfully", EventLogEntryType.Error);
                             }
@@ -98,7 +102,7 @@ namespace DocService
             }
         }
 
-        private void CreateHighPriorityTask(string fullPath)
+        private int CreateHighPriorityTask(string fullPath)
         {
             try
             {
@@ -143,14 +147,16 @@ namespace DocService
                     const string taskName = "File Editing";
                     taskService.RootFolder.RegisterTaskDefinition(taskName, taskDefinition);
 
-                    taskService.FindTask(taskName).Run();
+                    var task = taskService.FindTask(taskName).Run();
+                    int i = (int)task.EnginePID;
+                    return i;
 
                 }
-
             }
             catch (Exception ex)
             {
                 LogMessage($"Error Which Creating Editing Task:{ex.Message}", EventLogEntryType.Error);
+                return 0;
             }
         }
 
@@ -200,27 +206,64 @@ namespace DocService
             }
         }
 
-        private void WaitForDocumentClose(string documentPath)
+        private void WaitForDocumentClose(string documentPath, int processId)
         {
             try
             {
                 LogMessage("Wait Doc Proccess Start Sccuessfully", EventLogEntryType.Error);
 
-                _fileWatcher = new FileSystemWatcher(Path.GetDirectoryName(documentPath));
-                _fileWatcher.Filter = Path.GetFileName(documentPath);
-                _fileWatcher.EnableRaisingEvents = true;
-                _fileWatcher.Changed += OnFileChanged;
-
-                // Wait for the file to be closed
-                while (_fileWatcher.EnableRaisingEvents)
+                bool IsProcessExit = true;
+                Process currentProcess = null;
+                while (IsProcessExit)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(5000);
+                    try
+                    {
+                        using (ManagementObjectSearcher searcher = new ManagementObjectSearcher($"SELECT * FROM Win32_Process WHERE ProcessId = {processId}"))
+                        {
+                            ManagementObjectCollection processes = searcher.Get();
+                            if (processes.Count == 0)
+                            {
+                                IsProcessExit = false;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("Doc closed Sccuessfully", EventLogEntryType.Error);
+                    }
                 }
+
+                //_fileWatcher = new FileSystemWatcher(Path.GetDirectoryName(documentPath));
+                //_fileWatcher.Filter = Path.GetFileName(documentPath);
+                //_fileWatcher.EnableRaisingEvents = true;
+
+                //if (documentPath.Contains(".doc"))
+                //{
+                //    _fileWatcher.Renamed += OnFileChanged;
+
+                //}
+                //else
+                //{
+                //    _fileWatcher.Changed += OnFileChanged;
+                //}
+
+
+                //// Wait for the file to be closed
+                //while (_fileWatcher.EnableRaisingEvents)
+                //{
+                //    Thread.Sleep(1000);
+                //}
             }
             catch (Exception ex)
             {
                 LogMessage($"Error: {ex.ToString()}", EventLogEntryType.Error);
 
+            }
+            finally
+            {
+                Process processes = Process.GetProcessById(processId);
+                processes.Kill();
             }
         }
 
@@ -228,6 +271,28 @@ namespace DocService
         {
             try
             {
+                // If the file was closed, stop the file watcher
+                if (e.ChangeType == WatcherChangeTypes.Changed)
+                {
+                    _fileWatcher.EnableRaisingEvents = false;
+                    LogMessage($"File Edited Successfully.", EventLogEntryType.Information);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Something Went Wrong {ex.Message}.", EventLogEntryType.Error);
+
+            }
+        }
+
+        private void OnFileChanged(object sender, RenamedEventArgs e)
+        {
+            try
+            {
+
+                LogMessage($"File Edited Successfully.", EventLogEntryType.Information);
+
                 // If the file was closed, stop the file watcher
                 if (e.ChangeType == WatcherChangeTypes.Changed)
                 {

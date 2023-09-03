@@ -293,16 +293,25 @@
     }
   }
   /* Styles for the document container */
-.document-container {
+  .document-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 80vh;
+  overflow: hidden; /* Hide any overflowing content */
+  }
+
+  .table-container {
+  max-height: 400px; /* Adjust the maximum height as needed */
+  overflow-y: auto; /* Add a vertical scrollbar when needed */
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 90%;
 }
 
 /* Styles for the document table */
 .document-table {
-  width: 70%;
+  width: 100%;
   border-collapse: collapse;
   border: 1px solid #ddd;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -312,6 +321,9 @@
 .document-table th {
   padding: 12px;
   text-align: left;
+  background-color: #f2f2f2;
+  position: sticky;
+  top: 0;
   background-color: #f2f2f2;
 }
 
@@ -341,6 +353,7 @@
 
   <button style="margin-top: 5%;" (click)="navigateToUpload()" [hidden]="true">Upload Document</button>
   <div class="document-container">
+    <div class="table-container">
     <table class="document-table table table-bordered">
       <thead>
         <tr>
@@ -357,6 +370,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
   
 
