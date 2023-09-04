@@ -1,9 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DocumentUploaderComponent } from './document-uploader/document-uploader.component';
+import { LoginComponent } from './login/login.component';
+import { HomeComponent } from './home/home.component';
 
-const routes: Routes = [ 
-  { path: 'upload', component: DocumentUploaderComponent }
+const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' }, // Redirect to login
+  { path: 'login', component: LoginComponent },
+  { path: 'home', component: HomeComponent },
 ];
 
 @NgModule({

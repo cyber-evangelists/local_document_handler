@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
-import { DocumentServiceService } from './document-service.service';
 import { Router } from '@angular/router';
-import { ApiService } from './api.service';
 
 @Component({
   selector: 'app-root',
@@ -9,51 +7,15 @@ import { ApiService } from './api.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'DocClient';
 
-  documents: any[] = [];
+  isDisplay: boolean = false;
+  constructor(private router: Router) {} 
 
-  constructor(private documentService: DocumentServiceService,
-    private apiService :ApiService,
-    private router: Router) { }
-
-  ngOnInit(): void {
-    this.apiService.getFiles().subscribe(
-      (data) => {
-        this.documents = data;
-        console.log(this.documents);
-      },
-      (error) => {
-        console.error('Error fetching documents:', error);
-      }
-    );
+  logout() {
+    sessionStorage.removeItem('user'); 
+  
+    // Redirect to the login page
+    this.router.navigate(['/login']);
   }
-
-  navigateToUpload() {
-    this.router.navigate(['/upload']);
-  }
-
-  Download(docName:string)
-  {
-    this.apiService.getFile(docName).subscribe((response: any) => {
-      console.log(response);
-      this.saveFile(response, docName); // Adjust file name and extension as needed
-    },
-   (error)=> {
-    console.error('Error Downloading:', error);
-}    
-    );}
-
-private saveFile(data: any, fileName: string) {
-  const blob = new Blob([data], { type: 'application/octet-stream' });
-  const url = window.URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
-
-  window.URL.revokeObjectURL(url); 
-}
-
+ 
 }

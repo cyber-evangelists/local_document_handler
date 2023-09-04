@@ -7,17 +7,30 @@ import { Observable } from 'rxjs';
 })
 export class ApiService {
   private baseUrl = 'https://b334-223-123-4-243.ngrok-free.app'; // Update with your API URL
+  private readonly USERNAME_KEY = 'user';
+  private readonly USERPASS_KEY = '#$$%456';
 
-  constructor(private http: HttpClient) {}
+  username: any;
+  password: any;
 
-  login(): Observable<any> {
+  constructor(private http: HttpClient) {
+    const name = sessionStorage.getItem(this.USERNAME_KEY);
+    const pass =  sessionStorage.getItem(this.USERNAME_KEY);
+    if(name != null && pass != null)
+    {
+        this.username = name;
+        this.password = pass;
+    }
+  }
+
+  login(username:string,password:string): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
 
     const body = {
-      username: 'admin',
-      password: 'admin',
+      username: username,
+      password: password,
     };
 
     return this.http.post(`${this.baseUrl}/login`, body, { headers });
@@ -26,8 +39,8 @@ export class ApiService {
   uploadFile(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('username', 'admin');
-    formData.append('password', 'admin');
+    formData.append('username', this.username);
+    formData.append('password', this.password);
 
     return this.http.post(`${this.baseUrl}/upload_file`, formData);
   }
@@ -38,8 +51,8 @@ export class ApiService {
     });
 
     const body = {
-      username: 'admin',
-      password: 'admin',
+      username: this.username,
+      password: this.password,
       filename: filename,
     };
     const options = {
@@ -56,8 +69,8 @@ export class ApiService {
     });
 
     const body = {
-      username: 'admin',
-      password: 'admin',
+      username: this.username,
+      password: this.password,
     };
 
     return this.http.post(`${this.baseUrl}/getfiles`,body, { headers });
