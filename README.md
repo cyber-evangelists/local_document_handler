@@ -15,6 +15,8 @@ make super user by setting username and password.
 
 install apps if required.
 
+important:MAKE A FOLDER NAME 'flask' in admin account
+
 open docker and click next cloud contianer to watch logs.
 
 click file tab.
@@ -31,6 +33,7 @@ go to the terminal tab and run these commands.
 
 restart your container if required.
 
+NOTE: WHEN EVER YOU CREATE NEW USER, ADMIN HAVE TO SHARE flask FOLDER WITH THAT NEW USER SO USER CAN LOGIN.
 
 ## Flask server configration
 
