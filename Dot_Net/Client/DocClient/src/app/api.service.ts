@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://b334-223-123-4-243.ngrok-free.app'; // Update with your API URL
+  private baseUrl = 'https://localhost:5000'; // Update with your API URL
   private readonly USERNAME_KEY = 'user';
   private readonly USERPASS_KEY = '#$$%456';
 
@@ -27,12 +27,11 @@ export class ApiService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
-
     const body = {
       username: username,
       password: password,
     };
-
+    
     return this.http.post(`${this.baseUrl}/login`, body, { headers });
   }
 
