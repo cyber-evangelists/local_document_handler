@@ -13,15 +13,38 @@ export class LoginComponent {
   username = '';
   password = '';
   error='';
+  private readonly USERNAME_KEY = 'user';
+
   constructor(private authService: AuthService,
     private router : Router) {}
 
   onSubmit(): void {
-    if (this.authService.login(this.username, this.password)) {
-      this.router.navigate(['/home']);
-      
-    } else {
-      this.error ='Login failed';
+    // this.authService.login(this.username, this.password).subscribe((resp)=>{
+    //   if(resp){
+    //     console.log(resp);
+    //     this.router.navigate(['/home']);
+    //   }
+    //   else{
+    //     this.error ='Login failed';
+
+    //   }
+    // });
+    if(this.username != '' && this.password != '')
+    {
+      if (this.isAuthenticated()) {
+        console.log('Login successful');
+        this.router.navigate(['/home']);
+        
+      } else {
+        this.error ='Login failed';
+      }
     }
+  }
+
+  isAuthenticated(): boolean {
+    // Check if a user is stored in session storage
+    this.authService.login(this.username, this.password);
+    console.log(sessionStorage.getItem(this.USERNAME_KEY));
+    return !!sessionStorage.getItem(this.USERNAME_KEY);
   }
 }

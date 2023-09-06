@@ -204,9 +204,9 @@ def login():
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     check = nxc.upload_file('checklogin.txt', '/flask/checklogin.txt').data
     if check=='':
-        return 'login sucessfull',200
+        return jsonify({'status':'login sucessfull'}),200
     else:
-        return 'login failed',401
+        return jsonify({'status':'login failed'}),401
     
 
 @app.route('/save-logs',methods=['POST'])
@@ -237,4 +237,4 @@ def get_logs():
     
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True,ssl_context='adhoc')
