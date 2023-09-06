@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://localhost:5000'; // Update with your API URL
+  private baseUrl = 'http://localhost:5000'; // Update with your API URL
   private readonly USERNAME_KEY = 'user';
   private readonly USERPASS_KEY = '#$$%456';
 

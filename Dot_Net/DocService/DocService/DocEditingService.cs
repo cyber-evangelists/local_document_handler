@@ -138,7 +138,7 @@ namespace DocService
                     string fileExtension = System.IO.Path.GetExtension(fullPath).ToLower();
 
                     // Check if Word is the default application for the file extension
-                    if (IsWordDefaultForExtension(fileExtension))
+                    if (fileExtension.Contains(".docx"))
                     {
                         taskDefinition.Actions.Add(new ExecAction(fullPath, "winword.exe"));
                     }
@@ -198,7 +198,7 @@ namespace DocService
             try
             {
                 FileInfo file = new FileInfo(e.FullPath);
-                if (!file.Name.Contains("crdownload") || !file.Name.Contains(".tmp"))
+                if (!file.Name.Contains(".crdownload") /*|| !file.Name.Contains(".tmp")*/)
                 {
                     DownloadedFileName = file.Name;
                     ProcessRequest();

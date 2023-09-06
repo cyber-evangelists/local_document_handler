@@ -8,7 +8,7 @@ namespace DocService
 {
     public static class BaseURL
     {
-        private static string baseUrl = "https://beed-223-123-13-51.ngrok-free.app";
+        private static string baseUrl = "https://127.0.0.01:5000"; 
 
         public static string UploadFile = baseUrl + "/upload_file";
 
