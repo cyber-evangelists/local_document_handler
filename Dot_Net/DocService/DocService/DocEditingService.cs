@@ -83,6 +83,10 @@ namespace DocService
                             {
                                 LogMessage($"An error occurred: {ex.Message}", EventLogEntryType.Error);
                             }
+                            finally
+                            {
+                                _fileWatcher.Dispose();
+                            }
                         }
                         else
                         {
@@ -194,9 +198,9 @@ namespace DocService
             try
             {
                 FileInfo file = new FileInfo(e.FullPath);
-                DownloadedFileName = file.Name;
-                if (!DownloadedFileName.Contains("crdownload"))
+                if (!file.Name.Contains("crdownload") || !file.Name.Contains(".tmp"))
                 {
+                    DownloadedFileName = file.Name;
                     ProcessRequest();
                 }
             }
@@ -225,6 +229,7 @@ namespace DocService
                             if (processes.Count == 0)
                             {
                                 IsProcessExit = false;
+                                break;
                             }
                         }
                     }
@@ -233,37 +238,11 @@ namespace DocService
                         LogMessage("Doc closed Sccuessfully", EventLogEntryType.Error);
                     }
                 }
-
-                //_fileWatcher = new FileSystemWatcher(Path.GetDirectoryName(documentPath));
-                //_fileWatcher.Filter = Path.GetFileName(documentPath);
-                //_fileWatcher.EnableRaisingEvents = true;
-
-                //if (documentPath.Contains(".doc"))
-                //{
-                //    _fileWatcher.Renamed += OnFileChanged;
-
-                //}
-                //else
-                //{
-                //    _fileWatcher.Changed += OnFileChanged;
-                //}
-
-
-                //// Wait for the file to be closed
-                //while (_fileWatcher.EnableRaisingEvents)
-                //{
-                //    Thread.Sleep(1000);
-                //}
             }
             catch (Exception ex)
             {
                 LogMessage($"Error: {ex.ToString()}", EventLogEntryType.Error);
 
-            }
-            finally
-            {
-                Process processes = Process.GetProcessById(processId);
-                processes.Kill();
             }
         }
 
