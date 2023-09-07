@@ -138,7 +138,7 @@ def upload_file():
     username = request.form.get('username')
     password = request.form.get('password')
     if 'file' not in request.files:
-        return "No file part"
+        return "No file part",404
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     file = request.files['file']
     file.save(file.filename)
@@ -148,12 +148,12 @@ def upload_file():
         check = nxc.upload_file(file.filename, '/'+file.filename).data
         os.remove(file.filename)
         if check=='':
-            return 'file uploaded successfully'
+            return 'file uploaded successfully',200
         else:
             return 'file upload failed'
     else:
         os.remove(file.filename)
-        return 'error while uploading file or file has virus' 
+        return 'error while uploading file or file has virus',505
 
 
 @app.route('/get_file',methods=['POST'])
@@ -177,7 +177,7 @@ def get_file():
                 return response
             else:
                 os.remove(filename)
-                return 'file has virus'
+                return 'file has virus',505
         elif check_same_user(username,filename):
             if scanner(filename):
                 response = send_file(filename, as_attachment=True)
@@ -185,13 +185,13 @@ def get_file():
                 return response
             else:
                 os.remove(filename)
-                return 'file has virus'
+                return 'file has virus',505
         else:
             os.remove(filename)
-            return 'file already in editing process by another user'
+            return 'file already in editing process by another user',404
         
     else:
-        return 'file not exist or user have not access'
+        return 'file not exist or user have not access',404
 
 
 @app.route('/login',methods=['POST'])
