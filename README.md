@@ -1,45 +1,64 @@
 # Local Document Handler
 
+## Nextcloud Configuration
 
-## Next cloud configration:
+### Prerequisites
 
-install [Docker](https://www.docker.com) and compose in windows.
+1. **Install Docker**: Download and install [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/install/) on your Windows machine.
 
-open cmd terminal.
+2. **Open Command Prompt**: Open the Windows Command Prompt terminal.
 
-run command ```docker run -d -p 8080:80 nextcloud```.
+### Setting Up Nextcloud
 
-hit URL in your Browser ```http://localhost:8080/```.
+3. **Run Docker Container**: Execute the following command to run the Nextcloud container:
 
-make super user by setting username and password.
+   ```bash
+   docker run -d -p 8080:80 nextcloud
 
-install apps if required.
+    Access Nextcloud: Open your web browser and navigate to http://localhost:8080/.
 
-important:MAKE A FOLDER NAME 'flask' in admin account
+    Create Super User: Set up a superuser account by providing a username and password when prompted.
 
-open docker and click next cloud contianer to watch logs.
+    Install Apps (if required): Install any additional apps you need for your Nextcloud setup.
 
-click file tab.
+    Create 'flask' Folder: In the admin account, create a folder named 'flask.'
 
-open config folder and edit config.php file.
+    View Container Logs: Monitor the Nextcloud container by opening Docker and clicking on the Nextcloud container to view its logs.
 
-find trusted_domains key and add url that flask container will be used for accessing the nextcloud.
+    Edit config.php: To configure Nextcloud, follow these steps:
+        Click on the "File" tab in the Nextcloud web interface.
+        Open the "config" folder.
+        Edit the "config.php" file.
+        Find the "trusted_domains" key and add the URL that the Flask container will use to access Nextcloud.
 
-go to the terminal tab and run these commands.
+    Set Permissions: In the terminal tab, run the following commands to set the correct permissions for the Nextcloud configuration folder:
 
-```chown -R www-data:www-data config```.
+    bash
 
-```chmod -R 775 config```.
+    chown -R www-data:www-data config
+    chmod -R 775 config
 
-restart your container if required.
+    Restart Container (if required): Restart your Nextcloud container if necessary to apply the changes.
 
-NOTE: WHEN EVER YOU CREATE NEW USER, ADMIN HAVE TO SHARE flask FOLDER WITH THAT NEW USER SO USER CAN LOGIN.
+Important Note
 
-## Flask server configration
+    Whenever you create a new user, the admin must share the 'flask' folder with that user so they can access it after login.
 
+Flask Server Configuration
+Setup Steps
 
-after cloning the repo, go to the flask folder.
-open cmd in that folder by typing ```cmd``` in address bar.
-run command ```docker compose up```.
+    Clone the Repo: Clone the repository containing your Flask application.
 
-now configure the .NET service by reading README file in that folder.
+    Navigate to the Flask Folder: Open a command prompt and navigate to the folder containing your Flask application.
+
+    Run Docker Compose: Execute the following command to start the Flask server using Docker Compose:
+
+    bash
+
+    docker compose up
+
+    Configure the .NET Service: Refer to the README file in the Flask folder for instructions on configuring the .NET service.
+
+    Additional Setup: Complete any additional setup steps as mentioned in the README file to ensure your Flask server is fully functional.
+
+By following these steps, you can set up both Nextcloud and your Flask server on your Windows machine for local document handling.
