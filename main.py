@@ -217,7 +217,7 @@ def save_logs():
     machine = json_data.get('Machine')
     filename = json_data.get('filename')
     if username is None or description is None or machine is None:
-        return 'username or description or machine is missing'
+        return 'username or description or machine is missing',404
     save_logs_in_db(username,machine,description,filename)
     return 'logs saved successfully',200
 
@@ -228,7 +228,7 @@ def get_logs():
     machine = json_data.get('Machine')
     filename = json_data.get('filename')
     if username is None or machine is None or filename is None:
-        return 'username or machine is missing or filename is missing'
+        return 'username or machine is missing or filename is missing',404
     logs = get_logs_from_db(username,machine,filename)
     if logs is not None:
         return logs,200
