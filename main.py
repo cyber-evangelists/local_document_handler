@@ -103,9 +103,9 @@ def check_same_user(username,file_name):
 def fetch_data():
     try:
         cursor = mysql.connection.cursor()
-        return "Database connection successful!"
+        return "Database connection successful!",200
     except Exception as e:
-        return f"Database connection failed: {str(e)}"
+        return f"Database connection failed: {str(e)}",505
 
 
 @app.route('/getfiles',methods=['POST'])
