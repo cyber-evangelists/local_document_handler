@@ -116,20 +116,23 @@ def get_files_name():
     password = json_data.get('password')
     if username is None or password is None:
         return 'username or password is missing',404
-    print(username,password)
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
-    root = nxc.get_folder()
-    def _list_rec(d, indent=""):
-        formatted_string = "%s%s" % (d.basename(), '/' if d.isdir() else '')
-        if '/' not in formatted_string:
-            file_name.append(formatted_string)
-        print("%s%s%s" % (indent, d.basename(), '/' if d.isdir() else ''))
-        if d.isdir():
-            for i in d.list():
-                _list_rec(i, indent=indent+"  ")
+    def create_file_dict(folder):
+        file_dict = {} 
+        def _list_rec(d, current_path=""):
+            if d.isdir():
+                for i in d.list():
+                    new_path = current_path + '/' + i.basename() if current_path else i.basename()
+                    _list_rec(i, new_path)
+            else:
+                file_dict[d.basename()] = current_path
 
-    _list_rec(root)
-    return file_name
+        _list_rec(folder)
+        return file_dict
+
+    root = nxc.get_folder() 
+    file_dict = create_file_dict(root)
+    return file_dict
 
 
 @app.route('/upload_file',methods=['POST'])
