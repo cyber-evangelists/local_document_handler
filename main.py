@@ -115,7 +115,7 @@ def get_files_name():
     username = json_data.get('username')
     password = json_data.get('password')
     if username is None or password is None:
-        return 'username or password is missing'
+        return 'username or password is missing',404
     print(username,password)
     nxc = NextCloud(endpoint='http://host.docker.internal:8080/', user=username, password=password, json_output=True)
     root = nxc.get_folder()
