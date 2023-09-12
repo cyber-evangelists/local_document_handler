@@ -5,15 +5,19 @@ from nextcloud import NextCloud
 from flask_cors import CORS
 from services.scan import scanner
 from services.middleware import middleware
+from config import Config
+from dotenv import load_dotenv
+load_dotenv()
 import os
 
 app = Flask(__name__)
 app.wsgi_app = middleware(app.wsgi_app)
 
-app.config["MYSQL_HOST"] = "mysql-db"
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "example"
-app.config["MYSQL_DB"] = "file_data"
+# app.config["MYSQL_HOST"] = "mysql-db"
+# app.config["MYSQL_USER"] = "root"
+# app.config["MYSQL_PASSWORD"] = "example"
+# app.config["MYSQL_DB"] = "file_data"
+app.config.from_object(Config)
 
 mysql = MySQL(app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
