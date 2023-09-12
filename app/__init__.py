@@ -6,6 +6,7 @@ from flask_cors import CORS
 from services.scan import scanner
 from services.middleware import middleware
 from services.config import Config
+from .routes import my_blueprint
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -20,6 +21,7 @@ app = Flask(__name__)
 
 
 app.config.from_object(Config)
+app.register_blueprint(my_blueprint)
 
 mysql = MySQL(app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
