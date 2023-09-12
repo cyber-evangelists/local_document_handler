@@ -2,12 +2,13 @@ from flask import Flask, request, jsonify, send_file
 
 from flask_mysqldb import MySQL
 from nextcloud import NextCloud
-from virus_total_apis import PublicApi
 from flask_cors import CORS
-import hashlib
+from services.scan import scanner
+from services.middleware import middleware
 import os
 
 app = Flask(__name__)
+app.wsgi_app = middleware(app.wsgi_app)
 
 app.config["MYSQL_HOST"] = "mysql-db"
 app.config["MYSQL_USER"] = "root"
@@ -17,17 +18,7 @@ app.config["MYSQL_DB"] = "file_data"
 mysql = MySQL(app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-def scanner(filename):
-    API_KEY = '88858f77a2c07a9d4e9b6b730ea378d1d2c02e3c9e3e9ff885cb1e50da23014b'
-    with open(filename, "rb") as file:
-        EICAR_MD5 = hashlib.md5(file.read()).hexdigest()
 
-    vt = PublicApi(API_KEY)
-    response = vt.get_file_report(EICAR_MD5)
-   
-    if response["response_code"] == 200:
-        return response["results"]["response_code"] == 0 or response["results"]["positives"] == 0
-    return False
 
 def insert_locked_file(username,filename):
     cur = mysql.connection.cursor()
