@@ -82,3 +82,29 @@ def get_file():
             return jsonify({'warning':'file not exist or user have not access'}),404
     except:
         return jsonify({'error':'could not get file'}),500
+    
+
+
+
+@app.route('/upload_file',methods=['POST'])
+def upload_file():
+    check = None
+    username = request.form.get('username')
+    password = request.form.get('password')
+    if 'file' not in request.files:
+        return "No file part",404
+    nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+    file = request.files['file']
+    file.save(file.filename)
+    if check_record_exists(file.filename):
+        delete_locked_file(username,file.filename)
+    if scanner(file.filename):
+        check = nxc.upload_file(file.filename, '/'+file.filename).data
+        os.remove(file.filename)
+        if check=='':
+            return 'file uploaded successfully',200
+        else:
+            return 'file upload failed'
+    else:
+        os.remove(file.filename)
+        return 'error while uploading file or file has virus',505
