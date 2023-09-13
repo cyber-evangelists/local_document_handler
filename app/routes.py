@@ -1,12 +1,13 @@
 from app import app,mysql
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
-
+from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
+from services.scan import scanner
 from nextcloud import NextCloud
 from dotenv import load_dotenv
 load_dotenv()
 import os
-
+root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 # my_blueprint = Blueprint('my_blueprint', __name__)
 @app.route("/get_data",methods=['POST'])
@@ -39,39 +40,42 @@ def get_files_name():
     
 
 
-# @app.route('/get_file',methods=['POST'])
-# def get_file():
-#     json_data = request.json
-#     username = json_data.get('username')
-#     password = json_data.get('password')
-#     filename = json_data.get('filename')
-#     if filename is None or username is None or password is None:
-#         return 'filename or username or password is missing' 
-#     nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
-#     file = nxc.get_file(filename)
-#     if file is not None:
-#         file.fetch_file_content()
-#         file.download()
-#         if not check_record_exists(filename):
-#             insert_locked_file(username,filename)
-#             if scanner(filename):
-#                 response = send_file(filename, as_attachment=True)
-#                 os.remove(filename)
-#                 return response
-#             else:
-#                 os.remove(filename)
-#                 return 'file has virus',505
-#         elif check_same_user(username,filename):
-#             if scanner(filename):
-#                 response = send_file(filename, as_attachment=True)
-#                 os.remove(filename)
-#                 return response
-#             else:
-#                 os.remove(filename)
-#                 return 'file has virus',505
-#         else:
-#             os.remove(filename)
-#             return 'file already in editing process by another user',404
+@app.route('/get_file',methods=['POST'])
+def get_file():
+    json_data = request.json
+    username = json_data.get('username')
+    password = json_data.get('password')
+    filename = json_data.get('file_name')
+    file_path = json_data.get('file_path')
+    if filename is None or username is None or password is None:
+        return 'filename or username or password is missing' 
+    nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+    file = nxc.get_file(file_path)
+    if file is not None:
+        file.fetch_file_content()
+        file.download()
+        current_file_path = os.path.join(root_dir, filename)
+        if not check_record_exists(filename,file_path):
+            insert_locked_file(username,file_path)
+            if scanner(filename):
+                response = send_file(current_file_path, as_attachment=True)
+                os.remove(filename)
+                return response
+            else:
+                os.remove(filename)
+                return 'file has virus',505
+        elif check_same_user(username,filename,file_path):
+
+            if scanner(filename):
+                response = send_file(current_file_path, as_attachment=True)
+                os.remove(filename)
+                return response
+            else:
+                os.remove(filename)
+                return 'file has virus',505
+        else:
+            os.remove(filename)
+            return 'file already in editing process by another user',404
         
-#     else:
-#         return 'file not exist or user have not access',404
+    else:
+        return 'file not exist or user have not access',404
