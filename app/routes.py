@@ -2,6 +2,7 @@ from app import app,mysql
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
 from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
+from werkzeug.utils import secure_filename
 from services.scan import scanner
 from nextcloud import NextCloud
 from dotenv import load_dotenv
@@ -9,15 +10,15 @@ load_dotenv()
 import os
 root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
-# my_blueprint = Blueprint('my_blueprint', __name__)
-@app.route("/get_data",methods=['POST'])
-def fetch_data():
-    # mysql = current_app.config['mysql']
-    try:
-        cursor = mysql.connection.cursor()
-        return "Database connection successful! from routes",200
-    except Exception as e:
-        return f"Database connection failed: {str(e)}",505
+
+
+# @app.route("/get_data",methods=['POST'])
+# def fetch_data():
+#     try:
+#         cursor = mysql.connection.cursor()
+#         return "Database connection successful! from routes",200
+#     except Exception as e:
+#         return f"Database connection failed: {str(e)}",505
 
 
 
@@ -34,7 +35,7 @@ def get_files_name():
 
         root = nxc.get_folder() 
         file_dict = create_file_dict(root)
-        return file_dict
+        return file_dict,200
     except:
         return jsonify({"error":"could not get file details"}),500
     
@@ -46,8 +47,8 @@ def get_file():
         json_data = request.json
         username = json_data.get('username')
         password = json_data.get('password')
-        filename = json_data.get('file_name')
-        file_path = json_data.get('file_path')
+        filename = secure_filename(json_data.get('file_name'))
+        file_path = secure_filename(json_data.get('file_path'))
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
