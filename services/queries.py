@@ -3,7 +3,7 @@ from app import mysql
 def insert_locked_file(username,filename,path):
     cur = mysql.connection.cursor()
     insert_query = "INSERT INTO locked_files (username, file_name, file_url) VALUES (%s, %s, %s)"
-    data = (username, filename, path)
+    data = (username, filename, '/'+path)
     cur.execute(insert_query, data)
     mysql.connection.commit()
     cur.close()
@@ -36,10 +36,10 @@ def get_logs_from_db(username,machine,filename):
     else:
         return None
 
-def delete_locked_file(username,filename):
+def delete_locked_file(username,filename,file_path):
     cur = mysql.connection.cursor()
-    delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s"
-    data = (username, filename)
+    delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s AND file_url = %s"
+    data = (username, filename,file_path)
     cur.execute(delete_query, data)
     mysql.connection.commit()
     cur.close()

@@ -88,23 +88,27 @@ def get_file():
 
 @app.route('/upload_file',methods=['POST'])
 def upload_file():
-    check = None
-    username = request.form.get('username')
-    password = request.form.get('password')
-    if 'file' not in request.files:
-        return "No file part",404
-    nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
-    file = request.files['file']
-    file.save(file.filename)
-    if check_record_exists(file.filename):
-        delete_locked_file(username,file.filename)
-    if scanner(file.filename):
-        check = nxc.upload_file(file.filename, '/'+file.filename).data
-        os.remove(file.filename)
-        if check=='':
-            return 'file uploaded successfully',200
+    try:
+        check = None
+        username = request.form.get('username')
+        password = request.form.get('password')
+        file_path = request.form.get('file_path')
+        if 'file' not in request.files:
+            return jsonify({'error':'No file part'}),404
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        file = request.files['file']
+        file.save(file.filename)
+        if check_record_exists(file.filename,file_path):
+            delete_locked_file(username,file.filename,file_path)
+        if scanner(file.filename):
+            check = nxc.upload_file(file.filename, file_path).data
+            os.remove(file.filename)
+            if check=='':
+                return jsonify({'Messege':'file uploaded successfully'}),200
+            else:
+                return jsonify({'error':'file upload failed'}),500
         else:
-            return 'file upload failed'
-    else:
-        os.remove(file.filename)
-        return 'error while uploading file or file has virus',505
+            os.remove(file.filename)
+            return jsonify({'error':'error while uploading file or file has virus'}),500
+    except:
+        return jsonify({'error':'could not upload file'}),500
