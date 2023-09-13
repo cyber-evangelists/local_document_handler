@@ -42,40 +42,43 @@ def get_files_name():
 
 @app.route('/get_file',methods=['POST'])
 def get_file():
-    json_data = request.json
-    username = json_data.get('username')
-    password = json_data.get('password')
-    filename = json_data.get('file_name')
-    file_path = json_data.get('file_path')
-    if filename is None or username is None or password is None or file_path is None:
-        return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
-    nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
-    file = nxc.get_file(file_path)
-    if file is not None:
-        file.fetch_file_content()
-        file.download()
-        current_file_path = os.path.join(root_dir, filename)
-        if not check_record_exists(filename,file_path):
-            insert_locked_file(username,filename,file_path)
-            if scanner(filename):
-                response = send_file(current_file_path, as_attachment=True)
-                os.remove(filename)
-                return response
-            else:
-                os.remove(filename)
-                return jsonify({'error':'file has virus'}),500
-        elif check_same_user(username,filename,file_path):
+    try:
+        json_data = request.json
+        username = json_data.get('username')
+        password = json_data.get('password')
+        filename = json_data.get('file_name')
+        file_path = json_data.get('file_path')
+        if filename is None or username is None or password is None or file_path is None:
+            return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        file = nxc.get_file(file_path)
+        if file is not None:
+            file.fetch_file_content()
+            file.download()
+            current_file_path = os.path.join(root_dir, filename)
+            if not check_record_exists(filename,file_path):
+                insert_locked_file(username,filename,file_path)
+                if scanner(filename):
+                    response = send_file(current_file_path, as_attachment=True)
+                    os.remove(filename)
+                    return response
+                else:
+                    os.remove(filename)
+                    return jsonify({'error':'file has virus'}),500
+            elif check_same_user(username,filename,file_path):
 
-            if scanner(filename):
-                response = send_file(current_file_path, as_attachment=True)
-                os.remove(filename)
-                return response
+                if scanner(filename):
+                    response = send_file(current_file_path, as_attachment=True)
+                    os.remove(filename)
+                    return response
+                else:
+                    os.remove(filename)
+                    return jsonify({'error':'file has virus'}),500
             else:
                 os.remove(filename)
-                return jsonify({'error':'file has virus'}),500
+                return jsonify({'warning':'file already in editing process by another user'}),404
+            
         else:
-            os.remove(filename)
-            return jsonify({'warning':'file already in editing process by another user'}),404
-        
-    else:
-        return jsonify({'warning':'file not exist or user have not access'}),404
+            return jsonify({'warning':'file not exist or user have not access'}),404
+    except:
+        return jsonify({'error':'could not get file'}),500
