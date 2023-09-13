@@ -1,8 +1,10 @@
 import hashlib
 from virus_total_apis import PublicApi
-
+from dotenv import load_dotenv
+load_dotenv()
+import os
 def scanner(filename):
-    API_KEY = '88858f77a2c07a9d4e9b6b730ea378d1d2c02e3c9e3e9ff885cb1e50da23014b'
+    API_KEY = os.getenv("SCANAPI")
     with open(filename, "rb") as file:
         EICAR_MD5 = hashlib.md5(file.read()).hexdigest()
 

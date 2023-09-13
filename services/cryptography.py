@@ -14,10 +14,3 @@ def decrypt_value(encrypted_value_str):
     encrypted_value = base64.urlsafe_b64decode(encrypted_value_str.encode())
     decrypted_value = fernet.decrypt(encrypted_value)
     return decrypted_value.decode()
-
-# data_to_encrypt = "Hello, World!"
-# encrypted_data = encrypt_value(data_to_encrypt)
-# print("Encrypted Data:", encrypted_data)
-
-# decrypted_data = decrypt_value(encrypted_data)
-# print("Decrypted Data:", decrypted_data)

@@ -93,7 +93,7 @@ def upload_file():
         check = None
         username = request.form.get('username')
         password = request.form.get('password')
-        file_path = request.form.get('file_path')
+        file_path = secure_filename(request.form.get('file_path'))
         if 'file' not in request.files:
             return jsonify({'error':'No file part'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
