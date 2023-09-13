@@ -155,42 +155,7 @@
 #         return 'error while uploading file or file has virus',505
 
 
-# @app.route('/get_file',methods=['POST'])
-# def get_file():
-#     json_data = request.json
-#     username = json_data.get('username')
-#     password = json_data.get('password')
-#     filename = json_data.get('filename')
-#     if filename is None or username is None or password is None:
-#         return 'filename or username or password is missing' 
-#     nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
-#     file = nxc.get_file(filename)
-#     if file is not None:
-#         file.fetch_file_content()
-#         file.download()
-#         if not check_record_exists(filename):
-#             insert_locked_file(username,filename)
-#             if scanner(filename):
-#                 response = send_file(filename, as_attachment=True)
-#                 os.remove(filename)
-#                 return response
-#             else:
-#                 os.remove(filename)
-#                 return 'file has virus',505
-#         elif check_same_user(username,filename):
-#             if scanner(filename):
-#                 response = send_file(filename, as_attachment=True)
-#                 os.remove(filename)
-#                 return response
-#             else:
-#                 os.remove(filename)
-#                 return 'file has virus',505
-#         else:
-#             os.remove(filename)
-#             return 'file already in editing process by another user',404
-        
-#     else:
-#         return 'file not exist or user have not access',404
+
 
 
 # @app.route('/login',methods=['POST'])
