@@ -24,6 +24,13 @@ NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 
 @app.route('/getfiles',methods=['POST'])
 def get_files_name():
+    '''
+    get username and password from request body
+    get files data from nextcloud
+    create file dictionary
+    return file dictionary
+
+    '''
     try:
         json_data = request.json
         username = json_data.get('username')
@@ -43,6 +50,17 @@ def get_files_name():
 
 @app.route('/get_file',methods=['POST'])
 def get_file():
+    '''
+    get username,filename, file path and password from request body
+    check if file exists in nextcloud
+    check if file is locked by another user
+    if not locked by another user
+        download file
+        scan file
+        return file
+    else
+        return error
+    '''
     try:
         json_data = request.json
         username = json_data.get('username')
@@ -89,6 +107,12 @@ def get_file():
 
 @app.route('/upload_file',methods=['POST'])
 def upload_file():
+    '''
+    get username,filename, file and password from request body
+    scan file
+    upload file to nextcloud
+    return success or error
+    '''
     try:
         check = None
         username = request.form.get('username')
