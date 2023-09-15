@@ -1,7 +1,7 @@
 from test import app
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
-from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
+from services.utils import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
 from werkzeug.utils import secure_filename
 from services.scan import scanner
 from nextcloud import NextCloud
@@ -9,9 +9,21 @@ from dotenv import load_dotenv
 import pytest
 load_dotenv()
 import os
+
 root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 
+
+import pytest
+# @pytest.fixture
+# def client():
+#     app.config['TESTING'] = True
+#     with app.test_client() as client:
+#         yield client
+@pytest.fixture
+def app_context():
+    with app.app_context():
+        yield
 
 # @app.route("/get_data",methods=['POST'])
 # def fetch_data():
@@ -21,14 +33,9 @@ NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 #     except Exception as e:
 #         return f"Database connection failed: {str(e)}",505
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
 
 @app.route('/getfiles',methods=['POST'])
-def test_get_files_name():
+def test_get_files_name(app_context):
     '''
     get username and password from request body
     get files data from nextcloud
@@ -54,7 +61,7 @@ def test_get_files_name():
 
 
 @app.route('/get_file',methods=['POST'])
-def test_get_file():
+def test_get_file(app_context):
     '''
     get username,filename, file path and password from request body
     check if file exists in nextcloud
@@ -72,10 +79,12 @@ def test_get_file():
         password = json_data.get('password')
         filename = secure_filename(json_data.get('file_name'))
         file_path = secure_filename(json_data.get('file_path'))
+      
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = nxc.get_file(file_path)
+      
         if file is not None:
             file.fetch_file_content()
             file.download()
@@ -111,7 +120,7 @@ def test_get_file():
 
 
 @app.route('/upload_file',methods=['POST'])
-def test_upload_file():
+def test_upload_file(app_context):
     '''
     get username,filename, file and password from request body
     scan file
@@ -126,8 +135,10 @@ def test_upload_file():
         if 'file' not in request.files:
             return jsonify({'error':'No file part'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+       
         file = request.files['file']
         file.save(file.filename)
+       
         if check_record_exists(file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
         if scanner(file.filename):
