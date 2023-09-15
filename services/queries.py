@@ -44,10 +44,10 @@ def delete_locked_file(username,filename,file_path):
     mysql.connection.commit()
     cur.close()
 
-def check_record_exists(file_name,path):
+def check_record_exists(username,file_name,path):
     cur = mysql.connection.cursor()
-    query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s"
-    data = (file_name, path)
+    query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s AND username = %s"
+    data = (file_name, path, username)
     cur.execute(query, data)
     result = cur.fetchone()
     cur.close()

@@ -3,6 +3,7 @@ from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
 from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
 from werkzeug.utils import secure_filename
+from services.senitize_url import sanitize_file_path
 from services.scan import scanner
 from nextcloud import NextCloud
 from dotenv import load_dotenv
@@ -66,7 +67,8 @@ def get_file():
         username = json_data.get('username')
         password = json_data.get('password')
         filename = secure_filename(json_data.get('file_name'))
-        file_path = secure_filename(json_data.get('file_path'))
+        filename = filename.replace('_',' ')
+        file_path = sanitize_file_path(json_data.get('file_path'))
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
@@ -75,7 +77,7 @@ def get_file():
             file.fetch_file_content()
             file.download()
             current_file_path = os.path.join(root_dir, filename)
-            if not check_record_exists(filename,file_path):
+            if not check_record_exists(username,filename,file_path):
                 insert_locked_file(username,filename,file_path)
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
@@ -117,13 +119,13 @@ def upload_file():
         check = None
         username = request.form.get('username')
         password = request.form.get('password')
-        file_path = secure_filename(request.form.get('file_path'))
+        file_path = sanitize_file_path(request.form.get('file_path'))
         if 'file' not in request.files:
             return jsonify({'error':'No file part'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = request.files['file']
         file.save(file.filename)
-        if check_record_exists(file.filename,file_path):
+        if check_record_exists(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
         if scanner(file.filename):
             check = nxc.upload_file(file.filename, file_path).data

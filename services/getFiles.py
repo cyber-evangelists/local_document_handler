@@ -6,7 +6,7 @@ def create_file_dict(folder):
                 new_path = current_path + '/' + i.basename() if current_path else i.basename()
                 _list_rec(i, new_path)
         else:
-            file_dict[d.basename()] = current_path
+            file_dict[d.basename()] = ['/'+current_path,'_'+current_path.replace('/','_')]
 
     _list_rec(folder)
     return file_dict
