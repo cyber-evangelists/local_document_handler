@@ -69,8 +69,8 @@ def get_file():
         # password = json_data.get('password')
         username = request.environ.get('app.username')
         password = request.environ.get('app.password')
-        filename = request.envorion.get('app.filename')
-        file_path = request.environ.get('app.filepath')
+        filename = request.envorion.get('app.file_name')
+        file_path = request.environ.get('app.file_path')
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
