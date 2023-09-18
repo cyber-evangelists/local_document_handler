@@ -36,4 +36,3 @@ class middleware():
             environ['app.username'] = decrypt_value(username_from_json)
             environ['app.password'] = decrypt_value(password_from_json)
             return self.app(environ, start_response)
-    

@@ -13,17 +13,9 @@ root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 
 
-# @app.route("/get_data",methods=['POST'])
-# def fetch_data():
-#     try:
-#         cursor = mysql.connection.cursor()
-#         return "Database connection successful! from routes",200
-#     except Exception as e:
-#         return f"Database connection failed: {str(e)}",505
 
 
-
-@app.route('/getfiles',methods=['POST'])
+@app.route('/get-files-data',methods=['POST'])
 def get_files_name():
     '''
     get username and password from request body
@@ -33,9 +25,6 @@ def get_files_name():
 
     '''
     try:
-        # json_data = request.json
-        # username = json_data.get('username')
-        # password = json_data.get('password')
         username = request.environ.get('app.username')
         password = request.environ.get('app.password')
         if username is None or password is None:
