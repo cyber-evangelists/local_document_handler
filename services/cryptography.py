@@ -1,9 +1,10 @@
 from cryptography.fernet import Fernet
 import base64
-
-secret_key = Fernet.generate_key()
-
-fernet = Fernet(secret_key)
+import os
+# secret_key = Fernet.generate_key()
+# print('check key ',secret_key)
+secter_key = os.environ.get('FERNET_KEY')
+fernet = Fernet(secter_key.encode('utf-8'))
 
 def encrypt_value(value):
     encrypted_value = fernet.encrypt(value.encode())

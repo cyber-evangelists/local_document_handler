@@ -7,14 +7,14 @@ This is a Flask API that provides various endpoints for accessing and manipulati
 
 from flask_mysqldb import MySQL
 from flask_cors import CORS
-# from services.middleware import middleware
+from services.middleware import middleware
 from services.config import Config
 
 app = Flask(__name__)
 
 app.config.from_object(Config)
 mysql = MySQL(app)
-
+app.wsgi_app = middleware(app.wsgi_app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 from app import routes
