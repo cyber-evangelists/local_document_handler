@@ -65,13 +65,12 @@ def get_file():
         return error
     '''
     try:
-        json_data = request.json
         # username = json_data.get('username')
         # password = json_data.get('password')
-        username = request.environ.get('myapp.username')
-        password = request.environ.get('myapp.password')
-        filename = sanitize_filename(json_data.get('file_name'))
-        file_path = sanitize_filepath(json_data.get('file_path'))
+        username = request.environ.get('app.username')
+        password = request.environ.get('app.password')
+        filename = request.envorion.get('app.filename')
+        file_path = request.environ.get('app.filepath')
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
@@ -100,7 +99,6 @@ def get_file():
         else:
             return jsonify({'warning':'file not exist or user have not access'}),404
     except Exception as e:
-        os.remove(filename)
         return jsonify({'error':f'could not get file due to the: {e}'}),500
     
 

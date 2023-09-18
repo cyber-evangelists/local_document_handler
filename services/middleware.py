@@ -1,5 +1,6 @@
 from werkzeug.wrappers import Request
 from services.cryptography import encrypt_value, decrypt_value
+from pathvalidate import sanitize_filename, sanitize_filepath
 import json
 class middleware():
     '''
@@ -18,15 +19,18 @@ class middleware():
         if request.path in excluded_routes:
             return self.app(environ, start_response)
 
-        request_data_bytes = request.get_data()
-        request_data = json.loads(request_data_bytes.decode('utf-8'))
-        username_from_json = request_data.get('username')
-        password_from_json = request_data.get('password')
-        username_from_json = decrypt_value(username_from_json)
-        password_from_json = decrypt_value(password_from_json)
-        environ['app.username'] = password_from_json
-        environ['app.password'] = password_from_json
-        return self.app(environ, start_response)
+        if request.path in '/get_file':
+            request_data_bytes = request.get_data()
+            request_data = json.loads(request_data_bytes.decode('utf-8'))
+            username_from_json = request_data.get('username')
+            password_from_json = request_data.get('password')
+            username_from_json = decrypt_value(username_from_json)
+            password_from_json = decrypt_value(password_from_json)
+            environ['app.username'] = password_from_json
+            environ['app.password'] = password_from_json
+            environ['app.file_name'] = sanitize_filename(request_data['file_name'])
+            environ['app.file_path'] = sanitize_filepath(request_data['file_path'])
+            return self.app(environ, start_response)
         # if username_from_json == self.userName and password_from_json == self.password:
         #     environ['user'] = { 'name': 'Tony' }
 
