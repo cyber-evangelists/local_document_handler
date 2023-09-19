@@ -3,7 +3,7 @@ from test import mysql
 def insert_locked_file(username,filename,path):
     cur = mysql.connection.cursor()
     insert_query = "INSERT INTO locked_files (username, file_name, file_url) VALUES (%s, %s, %s)"
-    data = (username, filename, '/'+path)
+    data = (username, filename, path)
     cur.execute(insert_query, data)
     mysql.connection.commit()
     cur.close()

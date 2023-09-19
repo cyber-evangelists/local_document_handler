@@ -12,9 +12,18 @@ from services.config import Config
 
 app = Flask(__name__)
 
+app.wsgi_app = middleware(app.wsgi_app)
 app.config.from_object(Config)
 mysql = MySQL(app)
-app.wsgi_app = middleware(app.wsgi_app)
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
+# app.config['CORS_HEADERS'] = 'Content-Type'
+
+# @app.after_request
+# def after_request(response):
+#     print('after request')
+#     response.headers.add('Access-Control-Allow-Origin', '*')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+#     return response
+
+CORS(app, resources={r"*": {"origins": "*"}})
 
 from app import routes
