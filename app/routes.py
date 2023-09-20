@@ -100,7 +100,6 @@ def get_file():
             return jsonify({'warning':'file not exist or user have not access'}),404
     except Exception as e:
         return jsonify({'error':f'could not get file due to the: {e}'}),500
-    
 
 
 
