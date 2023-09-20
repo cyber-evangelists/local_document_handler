@@ -4,6 +4,7 @@ from services.getFiles import create_file_dict
 from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
 from services.scan import scanner
 from nextcloud import NextCloud
+from services.logs import logger
 from pathvalidate import sanitize_filename, sanitize_filepath
 from services.cryptography import encrypt_value, decrypt_value
 from flask_cors import cross_origin
@@ -31,11 +32,8 @@ def get_files_name():
         json_data = request.json
         username = decrypt_value(json_data.get('username'))
         password = decrypt_value(json_data.get('password'))
-        # username = request.environ.get('app.username')
-        # logging.error('username:', username)
-        # password = request.environ.get('app.password')
-        logging.error('username:', username)
         if username is None or password is None:
+            logger.error('username or password is missing')
             return jsonify({"error":"username or password is missing"}),404
         
         nxc = NextCloud(endpoint = NEXTCLOUD_URL, user=username, password=password, json_output=True)
@@ -44,6 +42,7 @@ def get_files_name():
         file_dict = create_file_dict(root)
         return file_dict, 200
     except Exception as e:
+        logger.error(f"could not get file details due to: {e}")
         return jsonify({"error":f"could not get file details due to: {e}"}),500
     
 
@@ -68,7 +67,9 @@ def get_file():
         filename = sanitize_filename(json_data.get('file_name'))
         file_path = sanitize_filepath(json_data.get('file_path'))
         if filename is None or username is None or password is None or file_path is None:
-            return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
+            logger.error('filename or username or password is missing or file_path is missing')
+            return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404
+        
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = nxc.get_file(file_path)
         if file is not None:
@@ -80,25 +81,32 @@ def get_file():
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
                     os.remove(filename)
+                    logger.info('file downloaded successfully')
                     return response
                 else:
                     os.remove(filename)
+                    logger.error('file has virus')
                     return jsonify({'error':'file has virus'}),500
+                
             elif check_same_user(username,filename,file_path):
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
                     os.remove(filename)
+                    logger.info('file downloaded successfully')
                     return response
                 else:
                     os.remove(filename)
+                    logger.error('file has virus')
                     return jsonify({'error':'file has virus'}),500
             else:
                 os.remove(filename)
                 return jsonify({'warning':'file already in editing process by another user'}),404
             
         else:
+            logger.warning('file not exist or user have not access')
             return jsonify({'warning':'file not exist or user have not access'}),404
     except Exception as e:
+        logger.error(f'could not get file due to the: {e}')
         return jsonify({'error':f'could not get file due to the: {e}'}),500
 
 
@@ -117,6 +125,7 @@ def upload_file():
         password = request.form.get('password')
         file_path = sanitize_filepath(request.form.get('file_path'))
         if 'file' not in request.files:
+            logger.error('No file in request')
             return jsonify({'error':'No file part'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = request.files['file']
@@ -127,13 +136,17 @@ def upload_file():
             check = nxc.upload_file(file.filename, file_path).data
             os.remove(file.filename)
             if check=='':
+                logger.info('file uploaded successfully')
                 return jsonify({'Messege':'file uploaded successfully'}),200
             else:
+                logger.error(f'file upload failed:{check}')
                 return jsonify({'error':f'file upload failed:{check}'}),500
         else:
             os.remove(file.filename)
+            logger.error('file has virus')
             return jsonify({'error':'file has virus'}),500
     except Exception as error:
+        logger.error(f'could not upload file due to:{error}')
         return jsonify({'error':f'could not upload file due to:{error}'}),500
     
 
@@ -151,6 +164,7 @@ def login():
         username = json_data.get('username')
         password = json_data.get('password')
         if username is None or password is None:
+            logger.error('username or password is missing')
             return jsonify({'error':'username or password or machine is missing or ip is missing'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         check = nxc.upload_file('checklogin.txt', '/flask/checklogin.txt').data
@@ -161,7 +175,9 @@ def login():
             'password':encrypt_value(password),
             }),200
         else:
-            return jsonify({'status':'login failed'}),401
+            logger.error('login failed from next cloud server')
+            return jsonify({'status':'login failed from next cloud'}),401
         
     except Exception as e:
+        logger.error(f'login failed due to: {e}')
         return jsonify({'status':f'login failed:{e}'}),500
