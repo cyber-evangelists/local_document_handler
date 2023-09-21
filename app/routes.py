@@ -58,6 +58,7 @@ def get_file():
     else
         return error
     '''
+    file_name_to_remove = None
     try:
         json_data = request.json
         username = decrypt_value(json_data.get('username'))
@@ -74,6 +75,7 @@ def get_file():
             file.fetch_file_content()
             file.download()
             current_file_path = os.path.join(root_dir, filename)
+            file_name_to_remove = filename
             if not check_record_exists(username,filename,file_path):
                 insert_locked_file(username,filename,file_path)
                 if scanner(filename):
@@ -105,6 +107,8 @@ def get_file():
             return jsonify({'warning':'file not exist or user have not access'}),404
     except Exception as e:
         logger.error(f'could not get file due to the: {e}')
+        if file_name_to_remove:
+            os.remove(file_name_to_remove)
         return jsonify({'error':f'could not get file due to the: {e}'}),500
 
 
@@ -117,6 +121,7 @@ def upload_file():
     upload file to nextcloud
     return success or error
     '''
+    file_name_to_remove = None
     try:
         check = None
         username = request.form.get('username')
@@ -128,6 +133,7 @@ def upload_file():
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = request.files['file']
         file.save(file.filename)
+        file_name_to_remove = file.filename
         if check_record_exists(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
         if scanner(file.filename):
@@ -145,6 +151,8 @@ def upload_file():
             return jsonify({'error':'file has virus'}),500
     except Exception as error:
         logger.error(f'could not upload file due to:{error}')
+        if file_name_to_remove:
+            os.remove(file_name_to_remove)
         return jsonify({'error':f'could not upload file due to:{error}'}),500
     
 
