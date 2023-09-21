@@ -7,7 +7,6 @@ from nextcloud import NextCloud
 from services.logs import logger
 from pathvalidate import sanitize_filename, sanitize_filepath
 from services.cryptography import encrypt_value, decrypt_value
-from flask_cors import cross_origin
 from dotenv import load_dotenv
 import logging
 load_dotenv()
@@ -19,7 +18,6 @@ NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 
 
 @app.route('/get_files_data',methods=['POST'])
-@cross_origin()
 def get_files_name():
     '''
     get username and password from request body
