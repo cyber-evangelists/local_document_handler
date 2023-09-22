@@ -16,16 +16,3 @@ def create_file_dict(folder):
 
     _list_rec(folder)
     return file_dict
-
-
-
-def send_file_to_client(file_path,filename):
-    '''
-    send file to client
-    '''
-    try:
-        responce = send_file(file_path, as_attachment=True)
-        os.remove(filename)
-        return 
-    except Exception as e:
-        return jsonify({"error":f"could not send file to client due to: {e}"}),500
