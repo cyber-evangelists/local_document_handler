@@ -12,7 +12,7 @@ CREATE TABLE locked_files (
     username VARCHAR(255),
     file_name VARCHAR(255),
     file_url VARCHAR(255)
-)
+);
 
 CREATE TABLE Logging (
     ID INT AUTO_INCREMENT PRIMARY KEY,
