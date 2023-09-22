@@ -14,3 +14,6 @@
 2023-09-20 15:09:49,661 - services.logs - INFO - file downloaded successfully
 2023-09-20 15:10:12,851 - services.logs - INFO - file uploaded successfully
 2023-09-20 15:10:23,092 - services.logs - INFO - file uploaded successfully
+2023-09-22 10:13:12,879 - services.logs - ERROR - could not get file due to the: (1146, "Table 'file_data.locked_files' doesn't exist")
+2023-09-22 10:15:01,660 - services.logs - ERROR - could not get file due to the: (2005, "Unknown server host 'mysql-db' (-3)")
+2023-09-22 10:22:32,915 - services.logs - ERROR - could not get file due to the: (1146, "Table 'file_data.locked_files' doesn't exist")
