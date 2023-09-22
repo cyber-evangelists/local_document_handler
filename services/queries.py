@@ -46,8 +46,8 @@ def delete_locked_file(username,filename,file_path):
 
 def check_record_exists(username,file_name,path):
     cur = mysql.connection.cursor()
-    query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s AND username = %s"
-    data = (file_name, path, username)
+    query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s"
+    data = (file_name, path)
     cur.execute(query, data)
     result = cur.fetchone()
     cur.close()

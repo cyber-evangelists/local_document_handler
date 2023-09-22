@@ -101,7 +101,7 @@ def get_file():
                     return jsonify({'status':'file has virus'}),500
             else:
                 os.remove(filename)
-                return jsonify({'status':'file already in editing process by another user'}),404
+                return jsonify({'status':'file already in editing process by another user'}),409
             
         else:
             logger.warning('file not exist or user have not access')
