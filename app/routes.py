@@ -89,7 +89,7 @@ def get_file():
                     response = send_file(current_file_path, as_attachment=True)
                     os.remove(filename)
                     logger.info('file downloaded successfully')
-                    return response
+                    return response,200
                 else:
                     os.remove(filename)
                     logger.error('file has virus')
@@ -160,6 +160,10 @@ def upload_file():
             os.remove(file.filename)
             logger.error('file is being edited by other user.')
             return jsonify({'status':'file is being edited by other user'}),500
+        else:
+            os.remove(file.filename)
+            logger.error('file operation failed.')
+            return jsonify({'status':'file operation failed'}),500
         
     except Exception as error:
         logger.error(f'could not upload file due to:{error}')
