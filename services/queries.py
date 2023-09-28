@@ -38,6 +38,7 @@ def get_logs_from_db(username,machine,filename):
 
 def delete_locked_file(username,filename,file_path):
     cur = mysql.connection.cursor()
+    file_path = '/'+file_path
     delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s AND file_url = %s"
     data = (username, filename,file_path)
     cur.execute(delete_query, data)
