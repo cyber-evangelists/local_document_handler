@@ -1,7 +1,13 @@
 from app import app,mysql
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
-from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
+from services.queries import (
+    insert_locked_file,
+    delete_locked_file,
+    check_record_exists,
+    check_same_user,
+    check_record_exists_against_user
+)
 from services.scan import scanner
 from nextcloud import NextCloud
 from services.logs import logger
@@ -135,21 +141,26 @@ def upload_file():
         file = request.files['file']
         file.save(file.filename)
         file_name_to_remove = file.filename
-        if check_record_exists(username,file.filename,file_path):
+        if check_record_exists_against_user(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
-        if scanner(file.filename):
-            check = nxc.upload_file(file.filename, file_path).data
-            os.remove(file.filename)
-            if check=='':
-                logger.info('file uploaded successfully')
-                return jsonify({'Messege':'file uploaded successfully'}),200
+            if scanner(file.filename):
+                check = nxc.upload_file(file.filename, file_path).data
+                os.remove(file.filename)
+                if check=='':
+                    logger.info('file uploaded successfully')
+                    return jsonify({'Messege':'file uploaded successfully'}),200
+                else:
+                    logger.error(f'file upload failed:{check}')
+                    return jsonify({'status':f'file upload failed:{check}'}),500
             else:
-                logger.error(f'file upload failed:{check}')
-                return jsonify({'status':f'file upload failed:{check}'}),500
-        else:
+                os.remove(file.filename)
+                logger.error('file has virus')
+                return jsonify({'status':'file has virus'}),500
+        elif check_record_exists(username,file.filename,file_path):
             os.remove(file.filename)
-            logger.error('file has virus')
-            return jsonify({'status':'file has virus'}),500
+            logger.error('file is being edited by other user.')
+            return jsonify({'status':'file is being edited by other user'}),500
+        
     except Exception as error:
         logger.error(f'could not upload file due to:{error}')
         if file_name_to_remove:
