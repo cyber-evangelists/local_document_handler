@@ -1,34 +1,32 @@
 from test import app
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
-from services.queries import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
+from services.test_functions import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
 from werkzeug.utils import secure_filename
 from services.scan import scanner
 from nextcloud import NextCloud
+from services.test_functions import encrypt_value, decrypt_value
+from pathvalidate import sanitize_filename, sanitize_filepath
 from dotenv import load_dotenv
 import pytest
 load_dotenv()
 import os
+import pytest
+
 root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 
 
-# @app.route("/get_data",methods=['POST'])
-# def fetch_data():
-#     try:
-#         cursor = mysql.connection.cursor()
-#         return "Database connection successful! from routes",200
-#     except Exception as e:
-#         return f"Database connection failed: {str(e)}",505
 
 @pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+def app_context():
+    with app.app_context():
+        yield
+
+
 
 @app.route('/getfiles',methods=['POST'])
-def test_get_files_name():
+def test_get_files_name(app_context):
     '''
     get username and password from request body
     get files data from nextcloud
@@ -38,8 +36,8 @@ def test_get_files_name():
     '''
     try:
         json_data = request.json
-        username = json_data.get('username')
-        password = json_data.get('password')
+        username = decrypt_value(json_data.get('username'))
+        password = decrypt_value(json_data.get('password'))
         if username is None or password is None:
             return jsonify({"error":"username or password is missing"}),404
         
@@ -47,14 +45,13 @@ def test_get_files_name():
 
         root = nxc.get_folder() 
         file_dict = create_file_dict(root)
-        return file_dict,200
-    except:
-        return jsonify({"error":"could not get file details"}),500
-    
+        return file_dict, 200
+    except Exception as e:
+        return jsonify({"error":f"could not get file details due to: {e}"}),500
 
 
 @app.route('/get_file',methods=['POST'])
-def test_get_file():
+def test_get_file(app_context):
     '''
     get username,filename, file path and password from request body
     check if file exists in nextcloud
@@ -68,10 +65,10 @@ def test_get_file():
     '''
     try:
         json_data = request.json
-        username = json_data.get('username')
-        password = json_data.get('password')
-        filename = secure_filename(json_data.get('file_name'))
-        file_path = secure_filename(json_data.get('file_path'))
+        username = decrypt_value(json_data.get('username'))
+        password = decrypt_value(json_data.get('password'))
+        filename = sanitize_filename(json_data.get('file_name'))
+        file_path = sanitize_filepath(json_data.get('file_path'))
         if filename is None or username is None or password is None or file_path is None:
             return jsonify({'error':'filename or username or password is missing or file_path is missing'}),404 
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
@@ -80,7 +77,7 @@ def test_get_file():
             file.fetch_file_content()
             file.download()
             current_file_path = os.path.join(root_dir, filename)
-            if not check_record_exists(filename,file_path):
+            if not check_record_exists(username,filename,file_path):
                 insert_locked_file(username,filename,file_path)
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
@@ -90,7 +87,6 @@ def test_get_file():
                     os.remove(filename)
                     return jsonify({'error':'file has virus'}),500
             elif check_same_user(username,filename,file_path):
-
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
                     os.remove(filename)
@@ -104,14 +100,14 @@ def test_get_file():
             
         else:
             return jsonify({'warning':'file not exist or user have not access'}),404
-    except:
-        return jsonify({'error':'could not get file'}),500
+    except Exception as e:
+        return jsonify({'error':f'could not get file due to the: {e}'}),500
     
 
 
 
 @app.route('/upload_file',methods=['POST'])
-def test_upload_file():
+def test_upload_file(app_context):
     '''
     get username,filename, file and password from request body
     scan file
@@ -122,13 +118,13 @@ def test_upload_file():
         check = None
         username = request.form.get('username')
         password = request.form.get('password')
-        file_path = secure_filename(request.form.get('file_path'))
+        file_path = sanitize_filepath(request.form.get('file_path'))
         if 'file' not in request.files:
             return jsonify({'error':'No file part'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
         file = request.files['file']
         file.save(file.filename)
-        if check_record_exists(file.filename,file_path):
+        if check_record_exists(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
         if scanner(file.filename):
             check = nxc.upload_file(file.filename, file_path).data
@@ -136,9 +132,39 @@ def test_upload_file():
             if check=='':
                 return jsonify({'Messege':'file uploaded successfully'}),200
             else:
-                return jsonify({'error':'file upload failed'}),500
+                return jsonify({'error':f'file upload failed:{check}'}),500
         else:
             os.remove(file.filename)
-            return jsonify({'error':'error while uploading file or file has virus'}),500
-    except:
-        return jsonify({'error':'could not upload file'}),500
+            return jsonify({'error':'file has virus'}),500
+    except Exception as error:
+        return jsonify({'error':f'could not upload file due to:{error}'}),500
+    
+    
+
+@app.route('/login',methods=['POST'])
+def test_login(app_context):
+    '''
+    get username and password from request body
+    check login
+    return success or error
+
+    '''
+    try:
+        json_data = request.json
+        username = json_data.get('username')
+        password = json_data.get('password')
+        if username is None or password is None:
+            return jsonify({'error':'username or password or machine is missing or ip is missing'}),404
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        check = nxc.upload_file('checklogin.txt', '/flask/checklogin.txt').data
+        if check=='':
+            return jsonify({
+            'status':'login sucessfull',
+            'username':encrypt_value(username),
+            'password':encrypt_value(password),
+            }),200
+        else:
+            return jsonify({'status':'login failed'}),401
+        
+    except Exception as e:
+        return jsonify({'status':f'login failed:{e}'}),500

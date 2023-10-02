@@ -2,7 +2,6 @@ from cryptography.fernet import Fernet
 import base64
 
 secret_key = Fernet.generate_key()
-
 fernet = Fernet(secret_key)
 
 def encrypt_value(value):

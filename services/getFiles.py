@@ -1,4 +1,10 @@
+from flask import jsonify,send_file
+import os
 def create_file_dict(folder):
+    '''
+    create files data dictionary
+
+    '''
     file_dict = {} 
     def _list_rec(d, current_path=""):
         if d.isdir():
