@@ -141,7 +141,6 @@ def upload_file():
         file = request.files['file']
         file.save(file.filename)
         file_name_to_remove = file.filename
-        logger.info(username,file.filename,file_path)
         if check_record_exists_against_user(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
             if scanner(file.filename):
