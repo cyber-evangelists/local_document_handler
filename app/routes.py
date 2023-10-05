@@ -11,6 +11,7 @@ from services.getFiles import create_file_dict
 from services.scan import scanner
 from nextcloud import NextCloud
 from services.logs import logger
+from db.models import LockedFile, File
 from pathvalidate import sanitize_filename, sanitize_filepath
 from services.cryptography import encrypt_value, decrypt_value
 from dotenv import load_dotenv

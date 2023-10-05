@@ -23,12 +23,14 @@ db = SQLAlchemy(app)
 
 
 
-with app.app_context():
-    if not database_exists('mysql+pymysql://root:example@mysql-db:3306/document_handler'):
-        create_database('mysql+pymysql://root:example@mysql-db:3306/document_handler')
-    db.create_all()
-
 
 CORS(app, resources={r"*": {"origins": "*"}})
 
 from app import routes
+from db.models import LockedFile, File
+
+
+with app.app_context():
+    if not database_exists('mysql+pymysql://root:example@mysql-db:3306/document_handler'):
+        create_database('mysql+pymysql://root:example@mysql-db:3306/document_handler')
+    db.create_all()
