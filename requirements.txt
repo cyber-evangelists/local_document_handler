@@ -8,6 +8,7 @@ Flask==2.3.3
 Flask-Cors==4.0.0
 Flask-MySQL==1.5.2
 Flask-MySQLdb==1.0.1
+greenlet==3.0.0
 idna==3.4
 iniconfig==2.0.0
 itsdangerous==2.1.2
@@ -25,6 +26,9 @@ pytest==7.4.2
 python-dotenv==1.0.0
 requests==2.31.0
 six==1.16.0
+SQLAlchemy==2.0.21
+SQLAlchemy-Utils==0.41.1
+typing_extensions==4.8.0
 urllib3==2.0.4
 virustotal-api==1.1.11
 Werkzeug==2.3.7
