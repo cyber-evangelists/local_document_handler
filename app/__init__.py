@@ -19,14 +19,8 @@ app.config.from_object(Config)
 mysql = MySQL(app)
 db = SQLAlchemy(app)
 
-# app.config['CORS_HEADERS'] = 'Content-Type'
 
-# @app.after_request
-# def after_request(response):
-#     print('after request')
-#     response.headers.add('Access-Control-Allow-Origin', '*')
-#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-#     return response
+
 with app.app_context():
     if not database_exists('mysql+pymysql://root:example@localhost:3306/document_handler'):
         create_database('mysql+pymysql://root:example@localhost:3306/document_handler')
