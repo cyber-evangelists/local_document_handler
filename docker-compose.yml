@@ -26,7 +26,7 @@ services:
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
     ports:
-      - "3308:3308"
+      - "3306:3306"
     networks:
       - my-network
 

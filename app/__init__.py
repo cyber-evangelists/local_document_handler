@@ -15,15 +15,17 @@ from sqlalchemy_utils.functions import database_exists, create_database
 app = Flask(__name__)
 
 app.wsgi_app = middleware(app.wsgi_app)
-app.config.from_object(Config)
-mysql = MySQL(app)
+# app.config.from_object(Config)
+# mysql = MySQL(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:example@mysql-db:3306/'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
 
 with app.app_context():
-    if not database_exists('mysql+pymysql://root:example@localhost:3306/document_handler'):
-        create_database('mysql+pymysql://root:example@localhost:3306/document_handler')
+    if not database_exists('mysql+pymysql://root:example@mysql-db:3306/document_handler'):
+        create_database('mysql+pymysql://root:example@mysql-db:3306/document_handler')
     db.create_all()
 
 

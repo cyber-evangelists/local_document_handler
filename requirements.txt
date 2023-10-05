@@ -8,6 +8,7 @@ Flask==2.3.3
 Flask-Cors==4.0.0
 Flask-MySQL==1.5.2
 Flask-MySQLdb==1.0.1
+Flask-SQLAlchemy==3.1.1
 greenlet==3.0.0
 idna==3.4
 iniconfig==2.0.0
