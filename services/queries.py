@@ -1,12 +1,18 @@
 # from test import mysql
-
-# def insert_locked_file(username,filename,path):
+from db.models import LockedFile
+from app import db
+from services.logs import logger
+def insert_locked_file(username,filename,path):
 #     cur = mysql.connection.cursor()
 #     insert_query = "INSERT INTO locked_files (username, file_name, file_url) VALUES (%s, %s, %s)"
 #     data = (username, filename, path)
 #     cur.execute(insert_query, data)
 #     mysql.connection.commit()
 #     cur.close()
+    new_locked_file = LockedFile(username=username, file_name=filename, file_url=path)
+    db.session.add(new_locked_file)
+    db.session.commit()
+
 
 # def save_logs_in_db(username,machine,descriptoion,filename):
 #     cur = mysql.connection.cursor()
@@ -36,28 +42,42 @@
 #     else:
 #         return None
 
-# def delete_locked_file(username,filename,file_path):
+def delete_locked_file(username,filename,file_path):
 #     cur = mysql.connection.cursor()
-#     file_path = '/'+file_path
+    file_path = '/'+file_path
 #     delete_query = "DELETE FROM locked_files WHERE username = %s AND file_name = %s AND file_url = %s"
 #     data = (username, filename,file_path)
 #     cur.execute(delete_query, data)
 #     mysql.connection.commit()
 #     cur.close()
+    deleted_count = (
+        db.session.query(LockedFile)
+        .filter_by(username=username, file_name=filename, file_url=file_path)
+        .delete()
+    )
 
-# def check_record_exists(username,file_name,path):
-#     cur = mysql.connection.cursor()
-#     query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s"
-#     data = (file_name, path)
-#     cur.execute(query, data)
-#     result = cur.fetchone()
-#     cur.close()
-#     if result:
-#         return True
-#     else:
-#         return False
+    db.session.commit()
+
+
+def check_record_exists(file_name,path):
+    # cur = mysql.connection.cursor()
+    # query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s"
+    # data = (file_name, path)
+    # cur.execute(query, data)
+    # result = cur.fetchone()
+    # cur.close()
+    # if result:
+    #     return True
+    # else:
+    #     return False
+    result = LockedFile.query.filter_by(file_name=file_name, file_url=path).first()
+    print('check in check record exist:',result)
+    if result:
+        return True
+    else:
+        return False
     
-# def check_record_exists_against_user(username,file_name,path):
+def check_record_exists_against_user(username,file_name,path):
 #     cur = mysql.connection.cursor()
 #     query = "SELECT id FROM locked_files WHERE file_name = %s AND file_url = %s AND username = %s"
 #     data = (file_name, '/'+path, username)
@@ -68,16 +88,16 @@
 #         return True
 #     else:
 #         return False
+    result = LockedFile.query.filter_by(file_name=file_name, file_url='/'+path,username=username).first()
+    if result.username==username:
+        return True
+    else:
+        return False
 
 
-# def check_same_user(username,file_name,file_path):
-#     cur = mysql.connection.cursor()
-#     query = "SELECT username FROM locked_files WHERE file_name = %s AND file_url = %s"
-#     data = (file_name, file_path)
-#     cur.execute(query, data)
-#     result = cur.fetchone()
-#     cur.close()
-#     if result[0]==username:
-#         return True
-#     else:
-#         return False
+def check_same_user(username,file_name,file_path):
+    result = LockedFile.query.filter_by(file_name=file_name, file_url=file_path,username=username).first()
+    if result.username==username:
+        return True
+    else:
+        return False

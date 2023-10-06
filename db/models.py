@@ -1,6 +1,7 @@
 from app import db
 
 class LockedFile(db.Model):
+    __tablename__ = "locked_files"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255))
     file_name = db.Column(db.String(255))
@@ -12,6 +13,7 @@ class LockedFile(db.Model):
         self.file_url = file_url
 
 class File(db.Model):
+    __tablename__ = "file"
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String(255))
     file_url = db.Column(db.String(255))

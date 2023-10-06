@@ -1,36 +1,28 @@
 from flask import Flask
+
+from flask_mysqldb import MySQL
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from dotenv import load_dotenv
+from services.middleware import middleware
+from services.logs import logger
+import os
+load_dotenv()
+
 """
 Flask server 
 
 This is a Flask API that provides various endpoints for accessing and manipulating data and files.
 """
-
-from flask_mysqldb import MySQL
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from services.middleware import middleware
-from services.config import Config
-from sqlalchemy_utils.functions import database_exists, create_database
+MYSQL_URL = os.getenv('MYSQL_URL')
 
 app = Flask(__name__)
-
 app.wsgi_app = middleware(app.wsgi_app)
-# app.config.from_object(Config)
-# mysql = MySQL(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:example@mysql-db:3306/'
+app.config['SQLALCHEMY_DATABASE_URI'] = MYSQL_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
-
-
 CORS(app, resources={r"*": {"origins": "*"}})
 
+
 from app import routes
-from db.models import LockedFile, File
-
-
-with app.app_context():
-    if not database_exists('mysql+pymysql://root:example@mysql-db:3306/document_handler'):
-        create_database('mysql+pymysql://root:example@mysql-db:3306/document_handler')
-    db.create_all()
