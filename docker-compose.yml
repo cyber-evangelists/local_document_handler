@@ -23,12 +23,17 @@ services:
       MYSQL_DATABASE: file_data
       MYSQL_USER: root1
       MYSQL_PASSWORD: nopasswordatall
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d/:ro
     ports:
-      - "3308:3308"
+      - "3306:3306"
     networks:
       - my-network
 
+  nextcloud:
+    image: nextcloud
+    ports:
+      - "8080:80"
+    networks:
+      - my-network
+      
 networks:
   my-network:

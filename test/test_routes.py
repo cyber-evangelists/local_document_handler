@@ -1,18 +1,21 @@
-from test import app
+from app import app
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
-from services.test_functions import insert_locked_file,delete_locked_file,check_record_exists,check_same_user
-from werkzeug.utils import secure_filename
+from services.queries import (
+    insert_locked_file,
+    delete_locked_file,
+    check_record_exists,
+    check_same_user,
+    check_record_exists_against_user
+)
 from services.scan import scanner
 from nextcloud import NextCloud
-from services.test_functions import encrypt_value, decrypt_value
+from services.logs import logger
 from pathvalidate import sanitize_filename, sanitize_filepath
+from services.cryptography import encrypt_value, decrypt_value
 from dotenv import load_dotenv
-import pytest
 load_dotenv()
 import os
-import pytest
-
 root_dir = os.getcwd()
 NEXTCLOUD_URL = os.getenv('NEXTCLOUD_URL')
 

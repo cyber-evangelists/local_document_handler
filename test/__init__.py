@@ -7,7 +7,6 @@ This is a Flask API that provides various endpoints for accessing and manipulati
 from flask import Flask
 from flask_mysqldb import MySQL
 from flask_cors import CORS
-# from services.middleware import middleware
 from services.config import Config
 
 app = Flask(__name__)

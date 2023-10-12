@@ -1,4 +1,4 @@
-from app import app,mysql
+from app import app
 from flask import request, jsonify, send_file
 from services.getFiles import create_file_dict
 from services.queries import (
@@ -14,7 +14,6 @@ from services.logs import logger
 from pathvalidate import sanitize_filename, sanitize_filepath
 from services.cryptography import encrypt_value, decrypt_value
 from dotenv import load_dotenv
-import logging
 load_dotenv()
 import os
 root_dir = os.getcwd()
@@ -40,7 +39,7 @@ def get_files_name():
             logger.error('username or password is missing')
             return jsonify({"status":"username or password is missing"}),404
         
-        nxc = NextCloud(endpoint = NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        nxc = NextCloud(endpoint = NEXTCLOUD_URL, user=username, password=password)
 
         root = nxc.get_folder() 
         file_dict = create_file_dict(root)
@@ -76,14 +75,14 @@ def get_file():
             logger.error('filename or username or password is missing or file_path is missing')
             return jsonify({'status':'filename or username or password is missing or file_path is missing'}),404
         
-        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password)
         file = nxc.get_file(file_path)
         if file is not None:
             file.fetch_file_content()
             file.download()
             current_file_path = os.path.join(root_dir, filename)
             file_name_to_remove = filename
-            if not check_record_exists(username,filename,file_path):
+            if not check_record_exists(filename,file_path):
                 insert_locked_file(username,filename,file_path)
                 if scanner(filename):
                     response = send_file(current_file_path, as_attachment=True)
@@ -111,7 +110,7 @@ def get_file():
             
         else:
             logger.warning('file not exist or user have not access')
-            return jsonify({'status':'file not exist or user have not access'}),404
+        return jsonify({'status':'file not exist or user have not access'}),404
     except Exception as e:
         logger.error(f'could not get file due to the: {e}')
         if file_name_to_remove:
@@ -137,11 +136,10 @@ def upload_file():
         if 'file' not in request.files:
             logger.error('No file in request')
             return jsonify({'status':'No file part'}),404
-        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password)
         file = request.files['file']
         file.save(file.filename)
         file_name_to_remove = file.filename
-        logger.info(username,file.filename,file_path)
         if check_record_exists_against_user(username,file.filename,file_path):
             delete_locked_file(username,file.filename,file_path)
             if scanner(file.filename):
@@ -164,7 +162,7 @@ def upload_file():
         else:
             os.remove(file.filename)
             logger.error('file operation failed.')
-            return jsonify({'status':'file operation failed'}),500
+        return jsonify({'status':'file operation failed'}),500
         
     except Exception as error:
         logger.error(f'could not upload file due to:{error}')
@@ -189,7 +187,7 @@ def login():
         if username is None or password is None:
             logger.error('username or password is missing')
             return jsonify({'status':'username or password or machine is missing or ip is missing'}),404
-        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
+        nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password)
         check = nxc.upload_file('checklogin.txt', '/flask/checklogin.txt').data
         if check=='':
             return jsonify({
@@ -199,8 +197,7 @@ def login():
             }),200
         else:
             logger.error('login failed from next cloud server')
-            return jsonify({'status':'login failed from next cloud'}),401
-        
+        return jsonify({'status':'login failed from next cloud'}),401
     except Exception as e:
         logger.error(f'login failed due to: {e}')
         return jsonify({'status':f'login failed:{e}'}),500
