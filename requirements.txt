@@ -30,6 +30,6 @@ six==1.16.0
 SQLAlchemy==2.0.21
 SQLAlchemy-Utils==0.41.1
 typing_extensions==4.8.0
-urllib3==2.0.6
+urllib3==2.0.7
 virustotal-api==1.1.11
 Werkzeug==2.3.7
