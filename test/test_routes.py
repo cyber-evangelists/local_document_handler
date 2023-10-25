@@ -12,7 +12,7 @@ from services.scan import scanner
 from nextcloud import NextCloud
 from services.logs import logger
 from pathvalidate import sanitize_filename, sanitize_filepath
-from services.cryptography import encrypt_value, decrypt_value
+from services.crypto import encrypt_value, decrypt_value
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -156,6 +156,8 @@ def test_login(app_context):
         json_data = request.json
         username = json_data.get('username')
         password = json_data.get('password')
+        print(username)
+        print(password)
         if username is None or password is None:
             return jsonify({'error':'username or password or machine is missing or ip is missing'}),404
         nxc = NextCloud(endpoint=NEXTCLOUD_URL, user=username, password=password, json_output=True)
