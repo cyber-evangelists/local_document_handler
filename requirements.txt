@@ -5,7 +5,7 @@ charset-normalizer==3.2.0
 click==8.1.7
 cryptography==42.0.4
 Flask==2.3.3
-Flask-Cors==4.0.1
+Flask-Cors==5.0.0
 Flask-MySQL==1.5.2
 Flask-MySQLdb==1.0.1
 Flask-SQLAlchemy==3.1.1
